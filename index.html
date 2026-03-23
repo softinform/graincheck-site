@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrainCheck — Калькулятор та облік зерна на елеваторі</title>
+  <meta name="description" content="Професійний калькулятор залікової ваги, тарифів елеватора та аналітика зберігання. Формула Дюваля, тонно-відсотки, Форма 36. Для України та Казахстану.">
+  <meta name="keywords" content="зерно, калькулятор, елеватор, залікова вага, Дюваль, тонно-відсотки, облік зерна, форма 36, сушка, очистка">
+  <link rel="canonical" href="https://graincheck.app">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="GrainCheck — Калькулятор та облік зерна">
+  <meta property="og:description" content="Знайте точно, скільки бере елеватор і скільки коштує ваше зерно. 100% офлайн.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://graincheck.app">
+  <meta property="og:image" content="https://graincheck.app/icon-512.png">
+  <meta property="og:locale" content="uk_UA">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --green-950: #052e0a;
+      --green-900: #0f3313;
+      --green-800: #1b5e25;
+      --green-700: #2d7a3a;
+      --green-600: #3a9148;
+      --green-500: #43a047;
+      --green-400: #66bb6a;
+      --green-100: #e8f5e9;
+      --green-50: #f1f8f2;
+      --gold: #d4a017;
+      --gold-light: #fdf6d8;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --bg: #fafbfc;
+      --text: #111827;
+      --text-secondary: #6b7280;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+      --shadow-xl: 0 20px 50px -12px rgba(0,0,0,0.15);
+      --shadow-2xl: 0 25px 60px -15px rgba(0,0,0,0.25);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0a0a0a;
+        --text: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --card-bg: #18181b;
+        --border: #27272a;
+        --green-50: #0d1f10;
+        --green-100: #142418;
+        --gold-light: #1f1c0e;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+        --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        --shadow-lg: 0 10px 25px rgba(0,0,0,0.35);
+        --shadow-xl: 0 20px 50px rgba(0,0,0,0.4);
+        --shadow-2xl: 0 25px 60px rgba(0,0,0,0.5);
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text); background: var(--bg);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── i18n ── */
+    [data-lang]:not(.active) { display: none !important; }
+    [data-country]:not(.country-visible) { display: none !important; }
+
+    /* ── Animations ── */
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scaleIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+    @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(5, 46, 10, 0.85); backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 8px 28px; gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .top-bar-group { display: flex; gap: 4px; align-items: center; }
+    .top-bar-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.15); }
+    .top-bar a {
+      color: rgba(255,255,255,0.55); text-decoration: none;
+      font-size: 12px; font-weight: 700; padding: 5px 12px;
+      border-radius: 8px; transition: all 0.2s; letter-spacing: 0.8px;
+      cursor: pointer;
+    }
+    .top-bar a:hover, .top-bar a.active {
+      color: #fff; background: rgba(255,255,255,0.15);
+    }
+    .top-bar .flag-btn { font-size: 16px; padding: 4px 10px; letter-spacing: 0; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(165deg, #031a06 0%, var(--green-900) 25%, var(--green-700) 55%, var(--green-500) 100%);
+      color: #fff; padding: 130px 24px 100px;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(102,187,106,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(212,160,23,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    /* Lightbox */
+    .lightbox-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: zoom-out; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .lightbox-overlay.open { opacity: 1; pointer-events: auto; }
+    .lightbox-overlay img {
+      max-height: 90vh; max-width: 90vw; border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      transform: scale(0.9); transition: transform 0.3s ease;
+    }
+    .lightbox-overlay.open img { transform: scale(1); }
+    .phone-screen { cursor: zoom-in; }
+
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+    }
+    .hero-content { text-align: left; }
+    .hero-logo {
+      width: 110px; height: 110px; border-radius: 26px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+      margin-bottom: 28px; animation: scaleIn 0.6s ease-out;
+    }
+    .hero h1 {
+      font-size: 52px; font-weight: 900; letter-spacing: -1.5px;
+      line-height: 1.05; margin-bottom: 8px;
+      animation: fadeUp 0.6s ease-out;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, #a5d6a7, #fff, #a5d6a7);
+      background-size: 200% auto;
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 4s linear infinite;
+    }
+    .hero .tagline {
+      font-size: 22px; font-weight: 400; opacity: 0.9;
+      margin-bottom: 12px; line-height: 1.5;
+      animation: fadeUp 0.6s ease-out 0.1s both;
+    }
+    .hero .hook {
+      font-size: 16px; opacity: 0.6; margin-bottom: 40px;
+      line-height: 1.6; max-width: 460px;
+      animation: fadeUp 0.6s ease-out 0.2s both;
+    }
+    .hero-phones {
+      display: flex; gap: 20px; justify-content: center; align-items: flex-start;
+      animation: fadeUp 0.8s ease-out 0.3s both;
+    }
+    .hero-phone {
+      width: 240px; flex-shrink: 0;
+      background: #000; border-radius: 28px;
+      padding: 8px; box-shadow: var(--shadow-2xl), 0 0 0 1px rgba(255,255,255,0.08);
+      transition: transform 0.4s ease;
+    }
+    .hero-phone:nth-child(1) { transform: rotate(-3deg) translateY(20px); animation: float 6s ease-in-out infinite; }
+    .hero-phone:nth-child(2) { transform: rotate(2deg); animation: float 6s ease-in-out infinite 1.5s; z-index: 2; }
+    .hero-phone:hover { transform: rotate(0deg) translateY(-8px) scale(1.03); z-index: 3; }
+    .hero-phone-screen {
+      width: 100%; aspect-ratio: 9/19.5; border-radius: 20px;
+      overflow: hidden; background: #1a1a1a;
+    }
+    .hero-phone-screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .store-buttons {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      animation: fadeUp 0.6s ease-out 0.3s both;
+    }
+    .store-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; text-decoration: none; padding: 14px 26px;
+      border-radius: 14px; font-size: 15px; font-weight: 500;
+      transition: all 0.3s ease; backdrop-filter: blur(8px);
+    }
+    .store-btn:hover {
+      background: rgba(255,255,255,0.2); transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .store-btn svg { width: 24px; height: 24px; fill: currentColor; }
+    .store-btn .store-meta { text-align: left; }
+    .store-btn .store-label { font-size: 11px; opacity: 0.7; line-height: 1.2; }
+    .store-btn .store-name { font-size: 17px; font-weight: 700; line-height: 1.2; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.3);
+      color: #fde68a; font-size: 12px; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; margin-bottom: 20px;
+      animation: fadeUp 0.6s ease-out both;
+    }
+
+    /* ── PAIN POINTS ── */
+    .pain-section { padding: 100px 24px; background: var(--bg); }
+    .pain-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+    .pain-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-top: 48px;
+    }
+    .pain-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 28px; text-align: left;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .pain-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .pain-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .pain-icon.red { background: #fef2f2; color: var(--red); }
+    .pain-icon.amber { background: #fffbeb; color: var(--amber); }
+    .pain-icon svg { width: 24px; height: 24px; stroke: currentColor; }
+    @media (prefers-color-scheme: dark) {
+      .pain-icon.red { background: #1c1111; }
+      .pain-icon.amber { background: #1c1a0f; }
+    }
+    .pain-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .pain-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ── Section base ── */
+    section { padding: 100px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-badge {
+      display: inline-block; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--green-700); background: var(--green-100);
+      padding: 6px 16px; border-radius: 20px; margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 40px; font-weight: 900; letter-spacing: -0.8px;
+      margin-bottom: 12px; line-height: 1.1;
+    }
+    .section-subtitle {
+      font-size: 17px; color: var(--text-secondary);
+      max-width: 560px; margin-bottom: 56px; line-height: 1.7;
+    }
+    .section-center { text-align: center; }
+    .section-center .section-subtitle { margin-left: auto; margin-right: auto; }
+
+    /* ── SCREENSHOTS ── */
+    .screens-section { background: var(--green-50); overflow: hidden; }
+    .phone-showcase {
+      display: flex; gap: 28px; justify-content: center;
+      flex-wrap: wrap; margin-top: 56px;
+    }
+    .phone-wrap { text-align: center; }
+    .phone-frame {
+      width: 270px; flex-shrink: 0;
+      background: #111; border-radius: 32px;
+      padding: 10px; box-shadow: var(--shadow-xl);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .phone-frame:hover {
+      transform: translateY(-8px); box-shadow: var(--shadow-2xl);
+    }
+    .phone-screen {
+      width: 100%; aspect-ratio: 9/19.5;
+      border-radius: 22px; overflow: hidden;
+      background: #1a1a1a;
+    }
+    .phone-screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .phone-label {
+      margin-top: 16px; font-size: 14px; font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* ── FEATURES ── */
+    .features-section { background: var(--bg); }
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px 28px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green-500), var(--green-400));
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .feature-card:hover::before { opacity: 1; }
+    .fc-icon {
+      width: 56px; height: 56px; background: var(--green-100);
+      border-radius: 16px; display: flex; align-items: center;
+      justify-content: center; font-size: 28px; margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .feature-card p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+    .feature-card ul {
+      color: var(--text-secondary); font-size: 14px;
+      margin: 10px 0 0 18px; line-height: 1.9; list-style: none;
+    }
+    .feature-card li { position: relative; padding-left: 6px; }
+    .feature-card li::before {
+      content: ''; position: absolute; left: -14px; top: 10px;
+      width: 6px; height: 6px; background: var(--green-500);
+      border-radius: 50%;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { background: var(--green-50); }
+    .steps {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 24px; counter-reset: step; margin-top: 56px;
+    }
+    .step {
+      text-align: center; padding: 32px 20px;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; position: relative;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .step:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      color: #fff; border-radius: 16px; font-size: 22px; font-weight: 900;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(45,122,58,0.3);
+    }
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ── STANDARDS ── */
+    .standards-section { background: var(--bg); }
+    .standards-grid { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+    .standard-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 44px;
+      text-align: center; min-width: 220px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .standard-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .standard-card .flag { font-size: 48px; margin-bottom: 12px; }
+    .standard-card .code { font-size: 18px; font-weight: 800; }
+    .standard-card .desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+
+    /* ── TRUST / OFFLINE ── */
+    .trust-section {
+      background: linear-gradient(135deg, var(--green-950), var(--green-800));
+      color: #fff; text-align: center;
+    }
+    .trust-section .section-badge {
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);
+    }
+    .trust-section .section-title { color: #fff; }
+    .trust-section .section-subtitle { color: rgba(255,255,255,0.7); }
+    .trust-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 24px; margin-top: 48px;
+    }
+    .trust-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 20px; padding: 36px 24px; text-align: center;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .trust-card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.1); }
+    .trust-card-icon {
+      font-size: 36px; margin-bottom: 16px;
+      width: 68px; height: 68px; margin: 0 auto 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    }
+    .trust-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .trust-card p { font-size: 13px; opacity: 0.65; line-height: 1.5; }
+
+    /* ── CTA ── */
+    .cta {
+      background: linear-gradient(165deg, var(--green-900) 0%, var(--green-700) 50%, var(--green-500) 100%);
+      color: #fff; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .cta .section-inner { position: relative; z-index: 1; }
+    .cta .section-title { color: #fff; }
+    .cta .cta-subtitle {
+      font-size: 18px; opacity: 0.85; margin-bottom: 40px;
+      max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.6;
+    }
+    .cta .store-buttons { justify-content: center; }
+    .cta-stats {
+      display: flex; gap: 48px; justify-content: center;
+      margin-top: 56px; padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .cta-stat { text-align: center; }
+    .cta-stat .num { font-size: 36px; font-weight: 900; line-height: 1.2; }
+    .cta-stat .label { font-size: 13px; opacity: 0.65; margin-top: 4px; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 48px 24px;
+      font-size: 13px; color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    footer a { color: var(--green-700); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links {
+      margin-bottom: 16px; display: flex;
+      justify-content: center; gap: 28px; flex-wrap: wrap;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-content { text-align: center; }
+      .hero .hook { margin-left: auto; margin-right: auto; }
+      .store-buttons { justify-content: center; }
+      .hero-phones { order: -1; }
+      .hero-phone { width: 190px; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps { grid-template-columns: repeat(2, 1fr); }
+      .trust-grid { grid-template-columns: repeat(2, 1fr); }
+      .cta-stats { gap: 32px; flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) {
+      .hero { padding: 110px 20px 70px; min-height: auto; }
+      .hero h1 { font-size: 36px; }
+      .hero .tagline { font-size: 18px; }
+      section { padding: 72px 20px; }
+      .section-title { font-size: 30px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .phone-frame { width: 220px; }
+      .hero-phone { width: 160px; border-radius: 22px; padding: 6px; }
+      .hero-phone-screen { border-radius: 16px; }
+      .pain-grid { grid-template-columns: 1fr; }
+      .cta-stats { gap: 24px; }
+      .cta-stat .num { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Country + Language bar -->
+<div class="top-bar">
+  <div class="top-bar-group">
+    <a class="flag-btn active" data-country-btn="ua" onclick="setCountry('ua');return false">🇺🇦</a>
+    <a class="flag-btn" data-country-btn="kz" onclick="setCountry('kz');return false">🇰🇿</a>
+  </div>
+  <div class="top-bar-sep"></div>
+  <div class="top-bar-group" id="lang-buttons"></div>
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>🌾</span>
+        <span data-lang="uk">Для фермерів та трейдерів</span>
+        <span data-lang="ru">Для фермеров и трейдеров</span>
+        <span data-lang="kk">Фермерлер мен трейдерлерге</span>
+        <span data-lang="en">For farmers & traders</span>
+      </div>
+      <img src="/icon-512.png" alt="GrainCheck" class="hero-logo">
+      <h1>Grain<span>Check</span></h1>
+
+      <p class="tagline" data-lang="uk">Калькулятор та облік зерна на елеваторі</p>
+      <p class="tagline" data-lang="ru">Калькулятор и учёт зерна на элеваторе</p>
+      <p class="tagline" data-lang="kk">Элеватордағы астық калькуляторы және есебі</p>
+      <p class="tagline" data-lang="en">Grain Calculator & Ledger for Elevators</p>
+
+      <p class="hook" data-lang="uk">Знайте точно, скільки бере елеватор і скільки насправді коштує ваше зерно. Розрахунок за секунду, без інтернету.</p>
+      <p class="hook" data-lang="ru">Знайте точно, сколько берёт элеватор и сколько на самом деле стоит ваше зерно. Расчёт за секунду, без интернета.</p>
+      <p class="hook" data-lang="kk">Элеватордың нақты шығынын және астығыңыздың нақты құнын біліңіз. Бір секундта есептеу, интернетсіз.</p>
+      <p class="hook" data-lang="en">Know exactly what the elevator charges and what your grain is truly worth. Instant calculation, no internet needed.</p>
+
+      <div class="store-buttons">
+        <a class="store-btn" href="javascript:void(0)" id="gp-link-1">
+          <svg viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 1.33c.576.334.576 1.17 0 1.504l-2.3 1.328-2.534-2.534 2.532-2.628zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+          <div class="store-meta">
+            <div class="store-label" data-lang="uk">Завантажити з</div>
+            <div class="store-label" data-lang="ru">Скачать в</div>
+            <div class="store-label" data-lang="kk">Жүктеп алу</div>
+            <div class="store-label" data-lang="en">Get it on</div>
+            <div class="store-name">Google Play</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-phones">
+      <div class="hero-phone">
+        <div class="hero-phone-screen">
+          <img src="/screens/calc.png" alt="Calculator">
+        </div>
+      </div>
+      <div class="hero-phone">
+        <div class="hero-phone-screen">
+          <img src="/screens/results.png" alt="Results">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PAIN POINTS ═══════════ -->
+<section class="pain-section">
+  <div class="pain-inner">
+    <div class="section-badge" data-lang="uk">Проблема</div>
+    <div class="section-badge" data-lang="ru">Проблема</div>
+    <div class="section-badge" data-lang="kk">Мәселе</div>
+    <div class="section-badge" data-lang="en">The problem</div>
+
+    <h2 class="section-title" data-lang="uk">Скільки ви втрачаєте на елеваторі?</h2>
+    <h2 class="section-title" data-lang="ru">Сколько вы теряете на элеваторе?</h2>
+    <h2 class="section-title" data-lang="kk">Элеваторда қанша жоғалтасыз?</h2>
+    <h2 class="section-title" data-lang="en">How much are you losing at the elevator?</h2>
+
+    <div class="pain-grid">
+      <div class="pain-card reveal">
+        <div class="pain-icon red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3 data-lang="uk">Непрозорі тарифи</h3>
+        <h3 data-lang="ru">Непрозрачные тарифы</h3>
+        <h3 data-lang="kk">Мөлдір емес тарифтер</h3>
+        <h3 data-lang="en">Hidden charges</h3>
+        <p data-lang="uk">Сушка, очистка, приймання, зберігання, відвантаження — кожна послуга з'їдає ціну. Без калькулятора ви не знаєте реальну собівартість.</p>
+        <p data-lang="ru">Сушка, очистка, приёмка, хранение, отгрузка — каждая услуга снижает цену. Без калькулятора вы не знаете реальную себестоимость.</p>
+        <p data-lang="kk">Кептіру, тазалау, қабылдау, сақтау, жөнелту — әр қызмет бағаны төмендетеді. Калькуляторсыз нақты өзіндік құнды білмейсіз.</p>
+        <p data-lang="en">Drying, cleaning, reception, storage, dispatch — every service eats into your price. Without a calculator, you don't know the real cost.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-1">
+        <div class="pain-icon amber">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <h3 data-lang="uk">Складні формули</h3>
+        <h3 data-lang="ru">Сложные формулы</h3>
+        <h3 data-lang="kk">Күрделі формулалар</h3>
+        <h3 data-lang="en">Complex formulas</h3>
+        <p data-lang="uk">Формула Дюваля, три методи тонно-відсотків, різний порядок підробки — рахувати вручну довго і з помилками.</p>
+        <p data-lang="ru">Формула Дюваля, три метода тонно-процентов, разный порядок подработки — считать вручную долго и с ошибками.</p>
+        <p data-lang="kk">Дюваль формуласы, тонна-пайыздардың үш әдісі, өңдеудің әр түрлі тәртібі — қолмен есептеу ұзақ және қателіктермен.</p>
+        <p data-lang="en">Duval formula, three tonne-percent methods, different processing orders — manual calculations are slow and error-prone.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-2">
+        <div class="pain-icon red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <h3 data-lang="uk">Облік в блокноті</h3>
+        <h3 data-lang="ru">Учёт в блокноте</h3>
+        <h3 data-lang="kk">Дәптерде есеп</h3>
+        <h3 data-lang="en">Paper-based tracking</h3>
+        <p data-lang="uk">Скільки зерна на якому елеваторі, за якою ціною — в голові або в блокноті. Один дзвінок — і ви не знаєте відповідь.</p>
+        <p data-lang="ru">Сколько зерна на каком элеваторе, по какой цене — в голове или в блокноте. Один звонок — и вы не знаете ответ.</p>
+        <p data-lang="kk">Қай элеваторда қанша астық, қандай бағамен — бастан немесе дәптерден. Бір қоңырау — жауабын білмейсіз.</p>
+        <p data-lang="en">How much grain at which elevator, at what price — in your head or on paper. One phone call — and you don't know the answer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SCREENSHOTS ═══════════ -->
+<section class="screens-section">
+  <div class="section-inner section-center">
+    <div class="section-badge" data-lang="uk">Рішення</div>
+    <div class="section-badge" data-lang="ru">Решение</div>
+    <div class="section-badge" data-lang="kk">Шешім</div>
+    <div class="section-badge" data-lang="en">The solution</div>
+
+    <h2 class="section-title reveal" data-lang="uk">Все зерно під контролем</h2>
+    <h2 class="section-title reveal" data-lang="ru">Всё зерно под контролем</h2>
+    <h2 class="section-title reveal" data-lang="kk">Барлық астық бақылауда</h2>
+    <h2 class="section-title reveal" data-lang="en">All your grain, under control</h2>
+
+    <p class="section-subtitle reveal" data-lang="uk">Від розрахунку залікової ваги до повного обліку на всіх елеваторах — в одному додатку</p>
+    <p class="section-subtitle reveal" data-lang="ru">От расчёта зачётного веса до полного учёта на всех элеваторах — в одном приложении</p>
+    <p class="section-subtitle reveal" data-lang="kk">Есептік салмақ есептеуден барлық элеваторлардағы толық есепке дейін — бір қосымшада</p>
+    <p class="section-subtitle reveal" data-lang="en">From credited weight calculation to full accounting across all elevators — in one app</p>
+
+    <div class="phone-showcase">
+      <div class="phone-wrap reveal">
+        <div class="phone-frame">
+          <div class="phone-screen"><img src="/screens/calc.png" alt="Calculator"></div>
+        </div>
+        <div class="phone-label" data-lang="uk">Калькулятор</div>
+        <div class="phone-label" data-lang="ru">Калькулятор</div>
+        <div class="phone-label" data-lang="kk">Калькулятор</div>
+        <div class="phone-label" data-lang="en">Calculator</div>
+      </div>
+      <div class="phone-wrap reveal reveal-delay-1">
+        <div class="phone-frame">
+          <div class="phone-screen"><img src="/screens/prices.png" alt="Prices"></div>
+        </div>
+        <div class="phone-label" data-lang="uk">Ціни на культури</div>
+        <div class="phone-label" data-lang="ru">Цены на культуры</div>
+        <div class="phone-label" data-lang="kk">Дақыл бағалары</div>
+        <div class="phone-label" data-lang="en">Culture prices</div>
+      </div>
+      <div class="phone-wrap reveal reveal-delay-2">
+        <div class="phone-frame">
+          <div class="phone-screen"><img src="/screens/ledger.png" alt="Ledger"></div>
+        </div>
+        <div class="phone-label" data-lang="uk">Облік зерна</div>
+        <div class="phone-label" data-lang="ru">Учёт зерна</div>
+        <div class="phone-label" data-lang="kk">Астық есебі</div>
+        <div class="phone-label" data-lang="en">Grain ledger</div>
+      </div>
+      <div class="phone-wrap reveal reveal-delay-3">
+        <div class="phone-frame">
+          <div class="phone-screen"><img src="/screens/results.png" alt="Results"></div>
+        </div>
+        <div class="phone-label" data-lang="uk">Друк Форми 36</div>
+        <div class="phone-label" data-lang="ru">Печать Формы 36</div>
+        <div class="phone-label" data-lang="kk">Нысан 36 басып шығару</div>
+        <div class="phone-label" data-lang="en">Form 36 print</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURES ═══════════ -->
+<section class="features-section">
+  <div class="section-inner">
+    <div class="section-badge" data-lang="uk">Можливості</div>
+    <div class="section-badge" data-lang="ru">Возможности</div>
+    <div class="section-badge" data-lang="kk">Мүмкіндіктер</div>
+    <div class="section-badge" data-lang="en">Features</div>
+
+    <h2 class="section-title" data-lang="uk">Все для роботи з елеватором</h2>
+    <h2 class="section-title" data-lang="ru">Всё для работы с элеватором</h2>
+    <h2 class="section-title" data-lang="kk">Элеватормен жұмыс үшін бәрі бар</h2>
+    <h2 class="section-title" data-lang="en">Everything for elevator operations</h2>
+
+    <p class="section-subtitle" data-lang="uk">Від першої машини на вазі до останньої тонни зі зберігання</p>
+    <p class="section-subtitle" data-lang="ru">От первой машины на весах до последней тонны со склада</p>
+    <p class="section-subtitle" data-lang="kk">Таразыдағы бірінші машинадан қоймадағы соңғы тоннаға дейін</p>
+    <p class="section-subtitle" data-lang="en">From the first truck on the scale to the last tonne from storage</p>
+
+    <div class="feature-grid">
+      <div class="feature-card reveal">
+        <div class="fc-icon">📐</div>
+        <h3 data-lang="uk">Точний калькулятор</h3>
+        <h3 data-lang="ru">Точный калькулятор</h3>
+        <h3 data-lang="kk">Дәл калькулятор</h3>
+        <h3 data-lang="en">Precise calculator</h3>
+        <ul data-lang="uk"><li>Залікова вага за формулою Дюваля</li><li>3 методи тонно-відсотків</li><li>3 порядки підробки</li><li>Зерно у відходах (0–2%)</li></ul>
+        <ul data-lang="ru"><li>Зачётный вес по формуле Дюваля</li><li>3 метода тонно-процентов</li><li>3 порядка подработки</li><li>Зерно в отходах (0–2%)</li></ul>
+        <ul data-lang="kk"><li>Дюваль бойынша есептік салмақ</li><li>Тонна-пайыздардың 3 әдісі</li><li>Өңдеудің 3 тәртібі</li><li>Қалдықтағы дән (0–2%)</li></ul>
+        <ul data-lang="en"><li>Credited weight via Duval</li><li>3 tonne-percent methods</li><li>3 processing orders</li><li>Grain-in-waste (0–2%)</li></ul>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="fc-icon">💰</div>
+        <h3 data-lang="uk">Аналіз собівартості</h3>
+        <h3 data-lang="ru">Анализ себестоимости</h3>
+        <h3 data-lang="kk">Өзіндік құн талдауы</h3>
+        <h3 data-lang="en">Cost analysis</h3>
+        <ul data-lang="uk"><li>Вплив послуг на ціну зерна</li><li>Ціна за фізичну та залікову вагу</li><li>Мін. ціна продажу після зберігання</li><li>Порівняння елеваторів</li></ul>
+        <ul data-lang="ru"><li>Влияние услуг на цену зерна</li><li>Цена за физический и зачётный вес</li><li>Мин. цена продажи после хранения</li><li>Сравнение элеваторов</li></ul>
+        <ul data-lang="kk"><li>Қызметтердің астық бағасына әсері</li><li>Физикалық және есептік салмақ бағасы</li><li>Сақтаудан кейінгі мін. сату бағасы</li><li>Элеваторларды салыстыру</li></ul>
+        <ul data-lang="en"><li>Service impact on grain price</li><li>Physical & credited weight price</li><li>Min. sale price after storage</li><li>Compare elevators</li></ul>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="fc-icon">📋</div>
+        <h3 data-lang="uk">Облік зерна</h3>
+        <h3 data-lang="ru">Учёт зерна</h3>
+        <h3 data-lang="kk">Астық есебі</h3>
+        <h3 data-lang="en">Grain ledger</h3>
+        <ul data-lang="uk"><li>Надходження та відвантаження</li><li>FIFO або середньозважена ціна</li><li>Собівартість зберігання</li><li>Прибуток / збиток в реальному часі</li></ul>
+        <ul data-lang="ru"><li>Приход и отгрузка</li><li>FIFO или средневзвешенная цена</li><li>Себестоимость хранения</li><li>Прибыль / убыток в реальном времени</li></ul>
+        <ul data-lang="kk"><li>Кіріс және жөнелту</li><li>FIFO немесе орташа өлшенген баға</li><li>Сақтау құны</li><li>Нақты уақыттағы пайда / залал</li></ul>
+        <ul data-lang="en"><li>Receipts & dispatches</li><li>FIFO or weighted average</li><li>Storage cost tracking</li><li>Real-time profit / loss</li></ul>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="fc-icon">🏭</div>
+        <h3 data-lang="uk">Профілі елеваторів</h3>
+        <h3 data-lang="ru">Профили элеваторов</h3>
+        <h3 data-lang="kk">Элеватор профильдері</h3>
+        <h3 data-lang="en">Elevator profiles</h3>
+        <ul data-lang="uk"><li>Тарифи кількох елеваторів</li><li>Ціни на культури по елеваторах</li><li>Історія зміни тарифів</li><li>Миттєве перемикання</li></ul>
+        <ul data-lang="ru"><li>Тарифы нескольких элеваторов</li><li>Цены на культуры по элеваторам</li><li>История изменения тарифов</li><li>Мгновенное переключение</li></ul>
+        <ul data-lang="kk"><li>Бірнеше элеватор тарифтері</li><li>Элеваторлар бойынша дақыл бағалары</li><li>Тарифтер тарихы</li><li>Лезде ауысу</li></ul>
+        <ul data-lang="en"><li>Multi-elevator rates</li><li>Per-elevator culture prices</li><li>Rate change history</li><li>Instant switching</li></ul>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="fc-icon">📊</div>
+        <h3 data-lang="uk">Швидкі ціни</h3>
+        <h3 data-lang="ru">Быстрые цены</h3>
+        <h3 data-lang="kk">Жылдам бағалар</h3>
+        <h3 data-lang="en">Quick prices</h3>
+        <ul data-lang="uk"><li>Всі ціни на одному екрані</li><li>Графік динаміки цін</li><li>Зміна одним натисканням</li><li>Фільтр по елеватору</li></ul>
+        <ul data-lang="ru"><li>Все цены на одном экране</li><li>График динамики цен</li><li>Изменение одним нажатием</li><li>Фильтр по элеватору</li></ul>
+        <ul data-lang="kk"><li>Барлық бағалар бір экранда</li><li>Баға динамикасы графигі</li><li>Бір басуда өзгерту</li><li>Элеватор бойынша сүзгі</li></ul>
+        <ul data-lang="en"><li>All prices on one screen</li><li>Price trend sparklines</li><li>One-tap editing</li><li>Filter by elevator</li></ul>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="fc-icon">📤</div>
+        <h3 data-lang="uk">Експорт та звіти</h3>
+        <h3 data-lang="ru">Экспорт и отчёты</h3>
+        <h3 data-lang="kk">Экспорт және есептер</h3>
+        <h3 data-lang="en">Export & reports</h3>
+        <ul data-lang="uk"><li>Форма ЗПП-36 (PDF)</li><li>PDF-звіт розрахунку</li><li>Три пресети експорту</li><li>Поділитися результатами</li></ul>
+        <ul data-lang="ru"><li>Форма ЗПП-36 (PDF)</li><li>PDF-отчёт расчёта</li><li>Три пресета экспорта</li><li>Поделиться результатами</li></ul>
+        <ul data-lang="kk"><li>ЗПП-36 нысаны (PDF)</li><li>Есептеу PDF-есебі</li><li>Үш экспорт алдын ала орнатуы</li><li>Нәтижелермен бөлісу</li></ul>
+        <ul data-lang="en"><li>Form ZPP-36 (PDF)</li><li>PDF calculation report</li><li>Three export presets</li><li>Share results</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HOW IT WORKS ═══════════ -->
+<section class="how-section">
+  <div class="section-inner section-center">
+    <div class="section-badge" data-lang="uk">Як це працює</div>
+    <div class="section-badge" data-lang="ru">Как это работает</div>
+    <div class="section-badge" data-lang="kk">Қалай жұмыс істейді</div>
+    <div class="section-badge" data-lang="en">How it works</div>
+
+    <h2 class="section-title" data-lang="uk">Від установки до результату — 2 хвилини</h2>
+    <h2 class="section-title" data-lang="ru">От установки до результата — 2 минуты</h2>
+    <h2 class="section-title" data-lang="kk">Орнатудан нәтижеге дейін — 2 минут</h2>
+    <h2 class="section-title" data-lang="en">From install to results — 2 minutes</h2>
+
+    <div class="steps">
+      <div class="step reveal">
+        <h3 data-lang="uk">Додайте елеватор</h3>
+        <h3 data-lang="ru">Добавьте элеватор</h3>
+        <h3 data-lang="kk">Элеваторды қосыңыз</h3>
+        <h3 data-lang="en">Add elevator</h3>
+        <p data-lang="uk">Збережіть базисні показники та тарифи один раз</p>
+        <p data-lang="ru">Сохраните базисные показатели и тарифы один раз</p>
+        <p data-lang="kk">Базистік көрсеткіштер мен тарифтерді бір рет сақтаңыз</p>
+        <p data-lang="en">Save base indicators and rates once</p>
+      </div>
+      <div class="step reveal reveal-delay-1">
+        <h3 data-lang="uk">Введіть показники</h3>
+        <h3 data-lang="ru">Введите показатели</h3>
+        <h3 data-lang="kk">Көрсеткіштерді енгізіңіз</h3>
+        <h3 data-lang="en">Enter indicators</h3>
+        <p data-lang="uk">Вологість, домішки, вага — калькулятор все зробить за вас</p>
+        <p data-lang="ru">Влажность, примеси, вес — калькулятор всё сделает за вас</p>
+        <p data-lang="kk">Ылғалдылық, қоспалар, салмақ — калькулятор бәрін есептейді</p>
+        <p data-lang="en">Humidity, impurities, weight — calculator does the rest</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <h3 data-lang="uk">Збережіть в облік</h3>
+        <h3 data-lang="ru">Сохраните в учёт</h3>
+        <h3 data-lang="kk">Есепке сақтаңыз</h3>
+        <h3 data-lang="en">Save to ledger</h3>
+        <p data-lang="uk">Одним натисканням — і партія в обліку зерна</p>
+        <p data-lang="ru">Одним нажатием — и партия в учёте зерна</p>
+        <p data-lang="kk">Бір басуда — және партия астық есебінде</p>
+        <p data-lang="en">One tap — and the batch is in your ledger</p>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <h3 data-lang="uk">Контролюйте прибуток</h3>
+        <h3 data-lang="ru">Контролируйте прибыль</h3>
+        <h3 data-lang="kk">Пайданы бақылаңыз</h3>
+        <h3 data-lang="en">Track profit</h3>
+        <p data-lang="uk">Собівартість, ціна продажу, прибуток — все в реальному часі</p>
+        <p data-lang="ru">Себестоимость, цена продажи, прибыль — всё в реальном времени</p>
+        <p data-lang="kk">Өзіндік құн, сату бағасы, пайда — бәрі нақты уақытта</p>
+        <p data-lang="en">Cost, sell price, profit — everything in real-time</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ STANDARDS ═══════════ -->
+<section class="standards-section">
+  <div class="section-inner section-center">
+    <div class="section-badge" data-lang="uk">Стандарти</div>
+    <div class="section-badge" data-lang="ru">Стандарты</div>
+    <div class="section-badge" data-lang="kk">Стандарттар</div>
+    <div class="section-badge" data-lang="en">Standards</div>
+
+    <h2 class="section-title" data-lang="uk">Відповідає нормативам вашої країни</h2>
+    <h2 class="section-title" data-lang="ru">Соответствует нормативам вашей страны</h2>
+    <h2 class="section-title" data-lang="kk">Еліңіздің нормативтеріне сәйкес</h2>
+    <h2 class="section-title" data-lang="en">Compliant with your country's regulations</h2>
+
+    <div class="standards-grid" style="margin-top:48px">
+      <div class="standard-card reveal" data-country="ua">
+        <div class="flag">🇺🇦</div>
+        <div class="code">ДСТУ 3768:2019</div>
+        <div class="desc" data-lang="uk">Наказ МінАП №661</div>
+        <div class="desc" data-lang="ru">Приказ МинАП №661</div>
+        <div class="desc" data-lang="en">MinAP Order №661</div>
+      </div>
+      <div class="standard-card reveal reveal-delay-1" data-country="kz">
+        <div class="flag">🇰🇿</div>
+        <div class="code">ГОСТ 9353-2016</div>
+        <div class="desc" data-lang="ru">Казахстан</div>
+        <div class="desc" data-lang="kk">Қазақстан</div>
+        <div class="desc" data-lang="en">Kazakhstan</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TRUST ═══════════ -->
+<section class="trust-section">
+  <div class="section-inner section-center">
+    <div class="section-badge" data-lang="uk">Безпека</div>
+    <div class="section-badge" data-lang="ru">Безопасность</div>
+    <div class="section-badge" data-lang="kk">Қауіпсіздік</div>
+    <div class="section-badge" data-lang="en">Security</div>
+
+    <h2 class="section-title" data-lang="uk">Ваші дані — тільки ваші</h2>
+    <h2 class="section-title" data-lang="ru">Ваши данные — только ваши</h2>
+    <h2 class="section-title" data-lang="kk">Деректеріңіз — тек сіздікі</h2>
+    <h2 class="section-title" data-lang="en">Your data stays yours</h2>
+
+    <div class="trust-grid">
+      <div class="trust-card reveal">
+        <div class="trust-card-icon">🔒</div>
+        <h3 data-lang="uk">100% офлайн</h3>
+        <h3 data-lang="ru">100% офлайн</h3>
+        <h3 data-lang="kk">100% офлайн</h3>
+        <h3 data-lang="en">100% offline</h3>
+        <p data-lang="uk">Працює без інтернету — в полі, на елеваторі, будь-де</p>
+        <p data-lang="ru">Работает без интернета — в поле, на элеваторе, где угодно</p>
+        <p data-lang="kk">Интернетсіз жұмыс істейді — далада, элеваторда, кез келген жерде</p>
+        <p data-lang="en">Works without internet — in the field, at the elevator, anywhere</p>
+      </div>
+      <div class="trust-card reveal reveal-delay-1">
+        <div class="trust-card-icon">⚡</div>
+        <h3 data-lang="uk">Без реєстрації</h3>
+        <h3 data-lang="ru">Без регистрации</h3>
+        <h3 data-lang="kk">Тіркелусіз</h3>
+        <h3 data-lang="en">No sign-up</h3>
+        <p data-lang="uk">Відкрили — працюєте. Без акаунтів та паролів</p>
+        <p data-lang="ru">Открыли — работаете. Без аккаунтов и паролей</p>
+        <p data-lang="kk">Ашты — жұмыс істейсіз. Есепшотсыз және құпиясөзсіз</p>
+        <p data-lang="en">Open and work. No accounts or passwords</p>
+      </div>
+      <div class="trust-card reveal reveal-delay-2">
+        <div class="trust-card-icon">🛡️</div>
+        <h3 data-lang="uk">Дані на пристрої</h3>
+        <h3 data-lang="ru">Данные на устройстве</h3>
+        <h3 data-lang="kk">Құрылғыдағы деректер</h3>
+        <h3 data-lang="en">On-device data</h3>
+        <p data-lang="uk">Жодна інформація не надсилається на сервери</p>
+        <p data-lang="ru">Никакая информация не отправляется на серверы</p>
+        <p data-lang="kk">Ешбір ақпарат серверлерге жіберілмейді</p>
+        <p data-lang="en">No data is ever sent to any servers</p>
+      </div>
+      <div class="trust-card reveal reveal-delay-3">
+        <div class="trust-card-icon">🌾</div>
+        <h3 data-lang="uk">Безкоштовно</h3>
+        <h3 data-lang="ru">Бесплатно</h3>
+        <h3 data-lang="kk">Тегін</h3>
+        <h3 data-lang="en">Free</h3>
+        <p data-lang="uk">30 днів повного доступу, далі — калькулятор безкоштовно назавжди</p>
+        <p data-lang="ru">30 дней полного доступа, далее — калькулятор бесплатно навсегда</p>
+        <p data-lang="kk">30 күн толық қол жетімділік, содан кейін — калькулятор мәңгі тегін</p>
+        <p data-lang="en">30 days full access, then — calculator free forever</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA ═══════════ -->
+<section class="cta">
+  <div class="section-inner">
+    <h2 class="section-title" data-lang="uk">Перестаньте гадати — рахуйте точно</h2>
+    <h2 class="section-title" data-lang="ru">Перестаньте гадать — считайте точно</h2>
+    <h2 class="section-title" data-lang="kk">Болжамдауды тоқтатыңыз — дәл есептеңіз</h2>
+    <h2 class="section-title" data-lang="en">Stop guessing — calculate precisely</h2>
+
+    <p class="cta-subtitle" data-lang="uk">Пшениця, ячмінь, кукурудза, соя, соняшник, ріпак та будь-які власні культури</p>
+    <p class="cta-subtitle" data-lang="ru">Пшеница, ячмень, кукуруза, соя, подсолнечник, рапс и любые культуры</p>
+    <p class="cta-subtitle" data-lang="kk">Бидай, арпа, жүгері, соя, күнбағыс, рапс және кез келген дақылдар</p>
+    <p class="cta-subtitle" data-lang="en">Wheat, barley, corn, soybeans, sunflower, rapeseed, and any custom culture</p>
+
+    <div class="store-buttons">
+      <a class="store-btn" href="javascript:void(0)" id="gp-link-2">
+        <svg viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 1.33c.576.334.576 1.17 0 1.504l-2.3 1.328-2.534-2.534 2.532-2.628zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+        <div class="store-meta">
+          <div class="store-label" data-lang="uk">Завантажити з</div>
+          <div class="store-label" data-lang="ru">Скачать в</div>
+          <div class="store-label" data-lang="kk">Жүктеп алу</div>
+          <div class="store-label" data-lang="en">Get it on</div>
+          <div class="store-name">Google Play</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="cta-stats">
+      <div class="cta-stat">
+        <div class="num" data-lang="uk">27</div>
+        <div class="num" data-lang="ru">27</div>
+        <div class="num" data-lang="kk">27</div>
+        <div class="num" data-lang="en">27</div>
+        <div class="label" data-lang="uk">комбінацій розрахунку</div>
+        <div class="label" data-lang="ru">комбинаций расчёта</div>
+        <div class="label" data-lang="kk">есептеу комбинациясы</div>
+        <div class="label" data-lang="en">calculation combos</div>
+      </div>
+      <div class="cta-stat">
+        <div class="num" data-lang="uk">3</div>
+        <div class="num" data-lang="ru">3</div>
+        <div class="num" data-lang="kk">3</div>
+        <div class="num" data-lang="en">3</div>
+        <div class="label" data-lang="uk">мови інтерфейсу</div>
+        <div class="label" data-lang="ru">языка интерфейса</div>
+        <div class="label" data-lang="kk">интерфейс тілі</div>
+        <div class="label" data-lang="en">interface languages</div>
+      </div>
+      <div class="cta-stat">
+        <div class="num" data-lang="uk">2</div>
+        <div class="num" data-lang="ru">2</div>
+        <div class="num" data-lang="kk">2</div>
+        <div class="num" data-lang="en">2</div>
+        <div class="label" data-lang="uk">країни (UA + KZ)</div>
+        <div class="label" data-lang="ru">страны (UA + KZ)</div>
+        <div class="label" data-lang="kk">ел (UA + KZ)</div>
+        <div class="label" data-lang="en">countries (UA + KZ)</div>
+      </div>
+      <div class="cta-stat">
+        <div class="num" data-lang="uk">0</div>
+        <div class="num" data-lang="ru">0</div>
+        <div class="num" data-lang="kk">0</div>
+        <div class="num" data-lang="en">0</div>
+        <div class="label" data-lang="uk">даних на серверах</div>
+        <div class="label" data-lang="ru">данных на серверах</div>
+        <div class="label" data-lang="kk">серверлердегі деректер</div>
+        <div class="label" data-lang="en">data on servers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="footer-links">
+    <a href="/privacy.html" data-lang="uk">Політика конфіденційності</a>
+    <a href="/privacy.html" data-lang="ru">Политика конфиденциальности</a>
+    <a href="/privacy.html" data-lang="kk">Құпиялылық саясаты</a>
+    <a href="/privacy.html" data-lang="en">Privacy Policy</a>
+    <a href="mailto:support@graincheck.app">support@graincheck.app</a>
+  </div>
+  <div>&copy; 2026 GrainCheck. SoftInform.</div>
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  // ── Country & Language system ──
+  var countryLangs = {
+    ua: [
+      { code: 'uk', label: 'UA' },
+      { code: 'ru', label: 'RU' },
+      { code: 'en', label: 'EN' }
+    ],
+    kz: [
+      { code: 'kk', label: 'KZ' },
+      { code: 'ru', label: 'RU' },
+      { code: 'en', label: 'EN' }
+    ]
+  };
+  var currentCountry = 'ua';
+  var currentLang = 'uk';
+
+  function setCountry(country) {
+    currentCountry = country;
+    // Update country buttons
+    document.querySelectorAll('[data-country-btn]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-country-btn') === country);
+    });
+    // Show/hide country-specific content
+    document.querySelectorAll('[data-country]').forEach(function(el) {
+      el.classList.toggle('country-visible', el.getAttribute('data-country') === country);
+    });
+    // Rebuild language buttons
+    var container = document.getElementById('lang-buttons');
+    container.innerHTML = '';
+    var langs = countryLangs[country];
+    langs.forEach(function(l) {
+      var a = document.createElement('a');
+      a.textContent = l.label;
+      a.setAttribute('data-lang-btn', l.code);
+      a.onclick = function() { setLang(l.code); return false; };
+      container.appendChild(a);
+    });
+    // Set default language for this country
+    var defaultLang = langs[0].code;
+    // Keep current lang if available in new country
+    var available = langs.some(function(l) { return l.code === currentLang; });
+    setLang(available ? currentLang : defaultLang);
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function(el) {
+      el.classList.toggle('active', el.getAttribute('data-lang') === lang);
+    });
+    document.querySelectorAll('[data-lang-btn]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-lang-btn') === lang);
+    });
+    document.documentElement.lang = lang;
+  }
+
+  // Auto-detect country & language
+  (function() {
+    var bl = (navigator.language || '').toLowerCase();
+    if (bl.startsWith('kk')) {
+      setCountry('kz');
+    } else {
+      setCountry('ua');
+      if (bl.startsWith('ru')) setLang('ru');
+      else if (bl.startsWith('en')) setLang('en');
+    }
+  })();
+
+  // ── Lightbox ──
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  document.querySelectorAll('.phone-screen img').forEach(function(img) {
+    img.addEventListener('click', function() { openLightbox(this.src); });
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // ── Reveal on scroll ──
+  (function() {
+    var els = document.querySelectorAll('.reveal');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function(el) { observer.observe(el); });
+  })();
+</script>
+
+</body>
+</html>
