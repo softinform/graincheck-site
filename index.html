@@ -19,6 +19,22 @@
   <meta property="og:image" content="https://graincheck.app/icon-512.png">
   <meta property="og:locale" content="uk_UA">
 
+  <!-- Smart store redirect: mobile visitors go straight to the matching store.
+       Desktop stays on landing. Override with ?web=1 (e.g. to see the marketing page on phone). -->
+  <script>
+    (function () {
+      try {
+        if (new URLSearchParams(location.search).has('web')) return;
+        var ua = navigator.userAgent || '';
+        if (/iPhone|iPad|iPod/i.test(ua) && !window.MSStream) {
+          location.replace('https://apps.apple.com/app/graincheck/id6761753467');
+        } else if (/Android/i.test(ua)) {
+          location.replace('https://play.google.com/store/apps/details?id=com.graincheck.app');
+        }
+      } catch (e) { /* never block the page if detection errors */ }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
