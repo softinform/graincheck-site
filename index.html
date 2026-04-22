@@ -520,6 +520,20 @@
       .cta-stat .num { font-size: 28px; }
     }
   </style>
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JWBCD1HEL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1JWBCD1HEL', {
+      // Respect privacy — anonymize IP by default
+      anonymize_ip: true,
+      // Send page_view on initial load
+      send_page_view: true
+    });
+  </script>
 </head>
 <body>
 
