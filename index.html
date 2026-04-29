@@ -1207,7 +1207,7 @@
   })();
 </script>
 
-<!-- ═══════════ STICKY MOBILE INSTALL CTA ═══════════ -->
+<!-- ═══════════ STICKY MOBILE INSTALL CTA — single OS-aware button ═══════════ -->
 <style>
   .sticky-cta {
     position: fixed; left: 0; right: 0; bottom: 0;
@@ -1219,47 +1219,42 @@
     box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
   }
   .sticky-cta-row {
-    display: flex; gap: 8px; align-items: center;
+    display: flex; gap: 10px; align-items: center;
     max-width: 600px; margin: 0 auto;
   }
-  .sticky-cta-text {
-    flex: 0 1 auto; min-width: 0;
-    color: #fff; font-size: 13px; font-weight: 600; line-height: 1.2;
-    margin-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
   .sticky-cta-btn {
-    flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     background: #fff; color: #0f3313; text-decoration: none;
-    padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    padding: 12px 18px; border-radius: 12px; font-weight: 700;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     min-width: 0;
   }
-  .sticky-cta-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .sticky-cta-btn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sticky-cta-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .sticky-cta-btn .cta-meta { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; min-width: 0; }
+  .sticky-cta-btn .cta-label { font-size: 11px; font-weight: 500; opacity: 0.7; letter-spacing: 0.2px; }
+  .sticky-cta-btn .cta-store { font-size: 16px; font-weight: 700; }
   .sticky-cta-close {
-    flex: 0 0 auto; background: transparent; border: 0; color: rgba(255,255,255,0.6);
-    width: 28px; height: 28px; padding: 0; cursor: pointer; font-size: 20px; line-height: 1;
-    border-radius: 6px;
+    flex: 0 0 auto; background: transparent; border: 0; color: rgba(255,255,255,0.55);
+    width: 32px; height: 32px; padding: 0; cursor: pointer; font-size: 22px; line-height: 1;
+    border-radius: 8px;
   }
   .sticky-cta-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
   @media (max-width: 768px) {
     .sticky-cta { display: block; }
-    body { padding-bottom: 84px; }
+    body { padding-bottom: 88px; }
   }
 </style>
-<div class="sticky-cta" id="sticky-cta" role="region" aria-label="Install GrainCheck">
+<div class="sticky-cta" id="sticky-cta" role="region" aria-label="Install GrainCheck" hidden>
   <div class="sticky-cta-row">
-    <span class="sticky-cta-text" data-lang="uk">Встановити</span>
-    <span class="sticky-cta-text" data-lang="ru">Установить</span>
-    <span class="sticky-cta-text" data-lang="kk">Орнату</span>
-    <span class="sticky-cta-text" data-lang="en">Install</span>
-    <a class="sticky-cta-btn" href="https://apps.apple.com/app/graincheck/id6761753467" target="_blank" rel="noopener" id="sticky-as-link" aria-label="App Store">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.86-3.08.4-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-      <span>App Store</span>
-    </a>
-    <a class="sticky-cta-btn" href="https://play.google.com/store/apps/details?id=com.graincheck.app" target="_blank" rel="noopener" id="sticky-gp-link" aria-label="Google Play">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 1.33c.576.334.576 1.17 0 1.504l-2.3 1.328-2.534-2.534 2.532-2.628zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
-      <span>Google Play</span>
+    <a class="sticky-cta-btn" id="sticky-store-link" href="#" target="_blank" rel="noopener">
+      <svg id="sticky-store-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"></svg>
+      <span class="cta-meta">
+        <span class="cta-label" data-lang="uk">Завантажити з</span>
+        <span class="cta-label" data-lang="ru">Скачать в</span>
+        <span class="cta-label" data-lang="kk">Жүктеп алу</span>
+        <span class="cta-label" data-lang="en">Download on</span>
+        <span class="cta-store" id="sticky-store-name">App Store</span>
+      </span>
     </a>
     <button type="button" class="sticky-cta-close" id="sticky-cta-close" aria-label="Hide install bar">×</button>
   </div>
@@ -1267,12 +1262,43 @@
 <script>
   (function () {
     var bar = document.getElementById('sticky-cta');
-    var btn = document.getElementById('sticky-cta-close');
-    if (!bar || !btn) return;
+    var link = document.getElementById('sticky-store-link');
+    var icon = document.getElementById('sticky-store-icon');
+    var name = document.getElementById('sticky-store-name');
+    var closeBtn = document.getElementById('sticky-cta-close');
+    if (!bar || !link || !icon || !name || !closeBtn) return;
+
+    // SVG paths (same icons used in hero store buttons)
+    var IOS_PATH = 'M17.05 20.28c-.98.95-2.05.86-3.08.4-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z';
+    var GP_PATH = 'M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 1.33c.576.334.576 1.17 0 1.504l-2.3 1.328-2.534-2.534 2.532-2.628zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z';
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) && !window.MSStream;
+    var isAndroid = /Android/i.test(ua);
+
+    if (isIOS) {
+      icon.innerHTML = '<path d="' + IOS_PATH + '"/>';
+      name.textContent = 'App Store';
+      link.href = 'https://apps.apple.com/app/graincheck/id6761753467';
+      link.id = 'sticky-as-link';
+    } else if (isAndroid) {
+      icon.innerHTML = '<path d="' + GP_PATH + '"/>';
+      name.textContent = 'Google Play';
+      link.href = 'https://play.google.com/store/apps/details?id=com.graincheck.app';
+      link.id = 'sticky-gp-link';
+    } else {
+      // Other mobile (e.g. KaiOS, Windows Mobile) — fallback to /install which lets the user choose
+      icon.innerHTML = '<path d="' + IOS_PATH + '"/>';
+      name.textContent = 'GrainCheck';
+      link.href = '/install';
+    }
+
     if (sessionStorage.getItem('hideStickyCTA') === '1') {
       bar.style.display = 'none';
+    } else {
+      bar.removeAttribute('hidden');
     }
-    btn.addEventListener('click', function () {
+    closeBtn.addEventListener('click', function () {
       bar.style.display = 'none';
       try { sessionStorage.setItem('hideStickyCTA', '1'); } catch (_) {}
     });
