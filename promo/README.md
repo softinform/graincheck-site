@@ -12,7 +12,6 @@ These are the **real production screenshots** of the GrainCheck app — numbers 
 | `02-form36-pdf.png` | PDF export adapted from Form № 36 (Ministry of Agrarian Policy of Ukraine) — accounting register of grain quantity/quality, ready to submit to bookkeeping. |
 | `03-prices-history.png` | Prices view — list of 6 default cultures with price history sparklines, supports physical/credited weight toggle, per-elevator filtering. |
 | `06-formulas.png` | Duval formula breakdown — step-by-step transparency: each calculation step with number substitution, lets the user verify math cell-by-cell. |
-| `tg-hero-1280x720.png` | Branded composite 1280×720 (TG link-preview aspect), used as drop-in hero for Telegram posts. |
 | `app-icon-1024.png` | App icon (1024×1024) for thumbnails / favicons. |
 
 ## URLs (public, durable)
@@ -22,7 +21,6 @@ After commit + Netlify deploy:
 - `https://graincheck.app/promo/02-form36-pdf.png`
 - `https://graincheck.app/promo/03-prices-history.png`
 - `https://graincheck.app/promo/06-formulas.png`
-- `https://graincheck.app/promo/tg-hero-1280x720.png`
 - `https://graincheck.app/promo/app-icon-1024.png`
 
 Alternative raw URLs (immediate, no Netlify wait):
