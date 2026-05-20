@@ -8,7 +8,7 @@ These are the **real production screenshots** of the GrainCheck app — numbers 
 
 | File | What's on it |
 |---|---|
-| `01-calculator-realistic.png` | Branded composite (1080×1080) showing Calculator result with **realistic numbers**: wheat price ~7 500 ₴/t (current market rate), services share **~6.5%** of revenue, net revenue ~1.46 mln ₴ for a typical batch. **This is an FB-ad composite, not a raw screen** — frame and tagline are baked in. Note: an older raw screen (`releases/screenshots/01-hero-analytics.png`) shows the same Calculator UI but with a TEST-DATA price of 1 322 ₴/t — which makes services look like 43.62% of revenue. That's nonsense in real-world (services are typically 5–15%), so the old raw screen is **deprecated for marketing use**. Use this composite instead, OR generate a fresh raw screen with realistic input. |
+| `01-calculator-realistic.jpg` | **Raw screen** of Calculator with realistic batch: 200 t at 17%/4.8% humidity/impurity, base 14%/2%, storage 60 days, wheat price 7 750 ₴/t (market rate). Result: credited weight 187,390 t, weight loss 12,610 t (6.31%), active preset "З поля" with services 92 360 ₴ = **6.36% of revenue**, net revenue 1 359 912,50 ₴. With "GrainCheck" header added on top. **Note:** an older raw screen (`releases/screenshots/01-hero-analytics.png`) shows the same UI but with TEST-DATA price of 1 322 ₴/t — services look like 43.62% of revenue, which is nonsense (real elevator services are 5–15%). That old screen is **deprecated for marketing use**. |
 | `02-form36-pdf.png` | PDF export adapted from Form № 36 (Ministry of Agrarian Policy of Ukraine) — accounting register of grain quantity/quality, ready to submit to bookkeeping. |
 | `03-prices-history.png` | Prices view — list of 6 default cultures with price history sparklines, supports physical/credited weight toggle, per-elevator filtering. |
 | `06-formulas.png` | Duval formula breakdown — step-by-step transparency: each calculation step with number substitution, lets the user verify math cell-by-cell. |
@@ -17,7 +17,7 @@ These are the **real production screenshots** of the GrainCheck app — numbers 
 ## URLs (public, durable)
 
 After commit + Netlify deploy:
-- `https://graincheck.app/promo/01-calculator-realistic.png`
+- `https://graincheck.app/promo/01-calculator-realistic.jpg`
 - `https://graincheck.app/promo/02-form36-pdf.png`
 - `https://graincheck.app/promo/03-prices-history.png`
 - `https://graincheck.app/promo/06-formulas.png`
