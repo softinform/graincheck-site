@@ -94,7 +94,6 @@
 
     /* ── i18n ── */
     [data-lang]:not(.active) { display: none !important; }
-    [data-country]:not(.country-visible) { display: none !important; }
 
     /* ── Animations ── */
     @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
@@ -557,13 +556,8 @@
 </head>
 <body>
 
-<!-- Country + Language bar -->
+<!-- Language bar -->
 <div class="top-bar">
-  <div class="top-bar-group">
-    <a class="flag-btn active" data-country-btn="ua" onclick="setCountry('ua');return false">🇺🇦</a>
-    <a class="flag-btn" data-country-btn="kz" onclick="setCountry('kz');return false">🇰🇿</a>
-  </div>
-  <div class="top-bar-sep"></div>
   <div class="top-bar-group" id="lang-buttons"></div>
 </div>
 
@@ -921,19 +915,12 @@
     <h2 class="section-title" data-lang="en">Compliant with your country's regulations</h2>
 
     <div class="standards-grid" style="margin-top:48px">
-      <div class="standard-card reveal" data-country="ua">
+      <div class="standard-card reveal">
         <div class="flag">🇺🇦</div>
         <div class="code">ДСТУ 3768:2019</div>
         <div class="desc" data-lang="uk">Наказ МінАП №661</div>
         <div class="desc" data-lang="ru">Приказ МинАП №661</div>
         <div class="desc" data-lang="en">MinAP Order №661</div>
-      </div>
-      <div class="standard-card reveal reveal-delay-1" data-country="kz">
-        <div class="flag">🇰🇿</div>
-        <div class="code">ГОСТ 9353-2016</div>
-        <div class="desc" data-lang="ru">Казахстан</div>
-        <div class="desc" data-lang="kk">Қазақстан</div>
-        <div class="desc" data-lang="en">Kazakhstan</div>
       </div>
     </div>
   </div>
@@ -1098,7 +1085,7 @@
     <a href="/privacy.html" data-lang="ru">Политика конфиденциальности</a>
     <a href="/privacy.html" data-lang="kk">Құпиялылық саясаты</a>
     <a href="/privacy.html" data-lang="en">Privacy Policy</a>
-    <a href="mailto:support@graincheck.app">support@graincheck.app</a>
+    <a href="mailto:hotline@softinform.com.ua">hotline@softinform.com.ua</a>
   </div>
   <div>&copy; 2026 GrainCheck. SoftInform.</div>
 </footer>
@@ -1110,48 +1097,25 @@
 
 <script>
   // ── Country & Language system ──
-  var countryLangs = {
-    ua: [
-      { code: 'uk', label: 'UA' },
-      { code: 'ru', label: 'RU' },
-      { code: 'en', label: 'EN' }
-    ],
-    kz: [
-      { code: 'kk', label: 'KZ' },
-      { code: 'ru', label: 'RU' },
-      { code: 'en', label: 'EN' }
-    ]
-  };
-  var currentCountry = 'ua';
+  var langs = [
+    { code: 'uk', label: 'UA' },
+    { code: 'ru', label: 'RU' },
+    { code: 'en', label: 'EN' }
+  ];
   var currentLang = 'uk';
 
-  function setCountry(country) {
-    currentCountry = country;
-    // Update country buttons
-    document.querySelectorAll('[data-country-btn]').forEach(function(btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-country-btn') === country);
-    });
-    // Show/hide country-specific content
-    document.querySelectorAll('[data-country]').forEach(function(el) {
-      el.classList.toggle('country-visible', el.getAttribute('data-country') === country);
-    });
-    // Rebuild language buttons
+  // Build language buttons once on load
+  (function() {
     var container = document.getElementById('lang-buttons');
-    container.innerHTML = '';
-    var langs = countryLangs[country];
     langs.forEach(function(l) {
       var a = document.createElement('a');
       a.textContent = l.label;
+      a.className = 'flag-btn';
       a.setAttribute('data-lang-btn', l.code);
       a.onclick = function() { setLang(l.code); return false; };
       container.appendChild(a);
     });
-    // Set default language for this country
-    var defaultLang = langs[0].code;
-    // Keep current lang if available in new country
-    var available = langs.some(function(l) { return l.code === currentLang; });
-    setLang(available ? currentLang : defaultLang);
-  }
+  })();
 
   function setLang(lang) {
     currentLang = lang;
@@ -1164,16 +1128,12 @@
     document.documentElement.lang = lang;
   }
 
-  // Auto-detect country & language
+  // Auto-detect language (UA default; switch to RU/EN if browser hints so)
   (function() {
     var bl = (navigator.language || '').toLowerCase();
-    if (bl.startsWith('kk')) {
-      setCountry('kz');
-    } else {
-      setCountry('ua');
-      if (bl.startsWith('ru')) setLang('ru');
-      else if (bl.startsWith('en')) setLang('en');
-    }
+    if (bl.startsWith('ru')) setLang('ru');
+    else if (bl.startsWith('en')) setLang('en');
+    else setLang('uk');
   })();
 
   // ── Lightbox ──
