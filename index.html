@@ -1100,7 +1100,8 @@
   var langs = [
     { code: 'uk', label: 'UA' },
     { code: 'ru', label: 'RU' },
-    { code: 'en', label: 'EN' }
+    { code: 'en', label: 'EN' },
+    { code: 'kk', label: 'KZ' }
   ];
   var currentLang = 'uk';
 
@@ -1128,11 +1129,12 @@
     document.documentElement.lang = lang;
   }
 
-  // Auto-detect language (UA default; switch to RU/EN if browser hints so)
+  // Auto-detect language (UA default; switch to RU/EN/KK if browser hints so)
   (function() {
     var bl = (navigator.language || '').toLowerCase();
     if (bl.startsWith('ru')) setLang('ru');
     else if (bl.startsWith('en')) setLang('en');
+    else if (bl.startsWith('kk')) setLang('kk');
     else setLang('uk');
   })();
 
