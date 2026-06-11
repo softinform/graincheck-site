@@ -11,3 +11,8 @@
   from = "/install"
   to = "/install.html"
   status = 200
+
+[[redirects]]
+  from = "/features"
+  to = "/features.html"
+  status = 200

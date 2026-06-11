@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>GrainCheck — каталог функціоналу</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --border: #e3e6ea; --text: #1d2024;
+    --muted: #6b7280; --primary: #2e7d32; --primary-bg: #e8f5e9;
+    --warn: #b45309; --warn-bg: #fef3c7;
+    --err: #b91c1c; --err-bg: #fee2e2;
+    --info: #1d4ed8; --info-bg: #dbeafe;
+    --pro: #7c3aed; --pro-bg: #ede9fe;
+    --shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 32px 64px;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px;
+    border-bottom: 2px solid var(--border); padding-bottom: 14px; margin-bottom: 22px;
+  }
+  header h1 { margin: 0; font-size: 24px; }
+  header .meta { font-size: 13px; color: var(--muted); }
+  header .meta strong { color: var(--text); }
+
+  /* Filter row */
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--card); padding: 12px 14px; border-radius: 12px;
+    border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .filters .group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .filters .label-tiny { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-right: 4px; font-weight: 600; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 11px; border-radius: 999px; font-size: 13px; font-weight: 500;
+    background: #f1f3f5; color: #495057; border: 1px solid transparent;
+    cursor: pointer; user-select: none; transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip:hover { background: #e9ecef; }
+  .chip.active { background: var(--primary); color: #fff; }
+  .chip.active.tag-pro { background: var(--pro); }
+  .chip.active.tag-live { background: var(--primary); }
+  .chip .count { font-size: 11px; opacity: 0.75; }
+
+  .search {
+    flex: 1; min-width: 200px; max-width: 320px; margin-left: auto;
+    padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; outline: none; background: #fff;
+  }
+  .search:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-bg); }
+
+  /* Stats bar */
+  .stats {
+    display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .stat {
+    background: var(--card); padding: 10px 16px; border-radius: 10px;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    font-size: 13px; color: var(--muted);
+  }
+  .stat strong { display: block; font-size: 22px; color: var(--text); font-weight: 700; line-height: 1; margin-bottom: 4px; }
+
+  /* Sections */
+  section.area {
+    margin-bottom: 36px;
+  }
+  section.area > h2 {
+    font-size: 19px; margin: 0 0 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  section.area > h2 .icon { font-size: 22px; }
+  section.area > .area-desc { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+
+  .group {
+    margin-bottom: 18px;
+  }
+  .group > h3 {
+    font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+    font-weight: 600; margin: 12px 0 8px; padding-bottom: 4px; border-bottom: 1px dashed var(--border);
+  }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+  .feature {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .feature:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+  .feature.dimmed { opacity: 0.25; transform: none; }
+  .feature h4 {
+    margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.35;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .feature .desc { font-size: 13px; color: #3d434a; margin: 0; }
+
+  .pill {
+    display: inline-block; padding: 1px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; line-height: 1.5;
+    text-transform: lowercase; letter-spacing: .2px;
+  }
+  .tag-live { background: var(--primary-bg); color: var(--primary); }
+  .tag-pro  { background: var(--pro-bg); color: var(--pro); }
+  .tag-free { background: #f1f3f5; color: #495057; }
+  .tag-locked { background: var(--warn-bg); color: var(--warn); }
+  .tag-in-dev { background: var(--info-bg); color: var(--info); }
+  .tag-broken { background: var(--err-bg); color: var(--err); }
+
+  .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .feature .meta-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    margin-top: auto; padding-top: 6px; font-size: 11.5px; color: var(--muted);
+  }
+  .feature .source {
+    font-family: ui-monospace, "SF Mono", Monaco, monospace; font-size: 11px;
+    color: var(--muted); background: #f3f4f6; padding: 2px 6px; border-radius: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;
+  }
+  .feature .source:hover { color: var(--primary); cursor: help; }
+
+  .empty {
+    text-align: center; padding: 40px 20px; color: var(--muted);
+    background: var(--card); border-radius: 10px; border: 1px dashed var(--border);
+  }
+
+  @media (max-width: 700px) {
+    body { padding: 14px 16px 40px; }
+    header { flex-direction: column; align-items: flex-start; }
+    .search { margin-left: 0; width: 100%; max-width: 100%; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>GrainCheck — каталог функціоналу</h1>
+    <div class="meta">Що додаток <strong>зараз</strong> уміє · поточна версія <strong id="m-version">—</strong> · оновлено <strong id="m-date">—</strong></div>
+  </div>
+  <div class="meta">Single source of truth · <code>docs/features.html</code></div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="filters">
+  <div class="group">
+    <span class="label-tiny">Розділ:</span>
+    <div id="filter-areas"></div>
+  </div>
+  <div class="group">
+    <span class="label-tiny">Тег:</span>
+    <div id="filter-tags"></div>
+  </div>
+  <input type="text" class="search" id="search" placeholder="🔍 пошук за назвою або описом…">
+</div>
+
+<main id="main"></main>
+
+<script type="application/json" id="features">
+{
+  "version": "1.2.3",
+  "lastUpdated": "2026-06-05",
+  "areas": [
+    {
+      "id": "calculator",
+      "title": "Калькулятор",
+      "icon": "🧮",
+      "description": "Розрахунок залікової ваги, втрат маси і ціни беззбитковості для партії зерна. Звідси користувач зберігає розрахунок в Історію або оприбутковує партію в Облік. Терміни беруться з UI (uk.ts).",
+      "groups": [
+        {
+          "title": "Порожній стан і підказки",
+          "features": [
+            { "id": "hint-elevator", "name": "Підказка «Додайте елеватор»", "description": "Якщо у користувача ще немає жодного елеватора — на головному екрані з'являється клікабельний банер «Збережіть тарифи та базисні показники для швидких розрахунків», що веде у форму створення.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:726-735 + uk.ts:hints.addElevator, hints.addElevatorDesc" },
+            { "id": "hint-culture", "name": "Підказка «Додайте культури»", "description": "Якщо в довіднику немає культур — банер «Вкажіть ціни на зерно для обліку та порівняння» з переходом на довідник культур.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:737-746 + uk.ts:hints.addCulture, hints.addCultureDesc" },
+            { "id": "historical-banner", "name": "Банер «Завантажено з історії від {дата}»", "description": "Активується ТІЛЬКИ при кліку на запис у вкладці «Історія» (HistoryView.vue:64-68 → calc.restoreFromRecord → router.push('/')). На головному з'являється жовтий банер з 📅 і кнопкою ×. Якщо ти не клікав запис в Історії — банера й не буде. Зникає при будь-якому редагуванні (через switchToActualBaseline). i18n-ключ: history.loadedFrom.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:707-713 + HistoryView.vue:64-68 + useCalculatorStore.ts:288-377" }
+          ]
+        },
+        {
+          "title": "Вибір елеватора та культури",
+          "features": [
+            { "id": "elevator-select", "name": "Селектор елеватора (з кнопками ✎ і ×)", "description": "Випадаючий список елеваторів. Кнопка ✎ — перехід у профіль елеватора на редагування. Кнопка × — повернення до ручного вводу (без жодного елеватора, базові показники й тарифи стають редагованими).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:740-769" },
+            { "id": "culture-select", "name": "Селектор «Культура» з ціною та типом ваги в опції", "description": "Список культур формату «Пшениця — 7 200 грн (Залік)». Виключені культури елеватора в списку не з'являються. Зміна ціни редактором ціни одразу віддзеркалюється у підписі обраної опції.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:208-241,770-789 + uk.ts:calc.priceTypeShort" },
+            { "id": "inline-price", "name": "Інлайн-редактор «Ціна» з типом ваги (Факт/Залік)", "description": "Кнопка ✎ поряд з культурою відкриває редактор ціни + сегмент-перемикач «Ціна за: Фізичну вагу / Залікову вагу». Зміна ціни через debounce 800мс автоматично зберігається: у профіль елеватора (якщо в профілі ввімкнено «Оновлювати ціни з калькулятора»), або у довідник культур (якщо в Налаштуваннях ввімкнено «Зберігати ціни до довідника»).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:94-125,274-294 + uk.ts:calc.grainPriceType, elevators.autoUpdatePrices, settings.autoUpdateCulturePrices" }
+          ]
+        },
+        {
+          "title": "Вхідні параметри партії",
+          "features": [
+            { "id": "quality-humidity", "name": "«Вологість» — фактична + базисна", "description": "Двоколонкова таблиця: «Факт» і «Базис». З вибраним елеватором базисна показується тільки як значення (нередагована, береться з культури-на-елеваторі або з профілю елеватора). Без елеватора — обидва поля редаговані.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:843-867 + uk.ts:calc.inputParams (section title), calc.humidity, calc.inputHumidity, calc.baseHumidity, calc.colFact, calc.colBase" },
+            { "id": "quality-mixin", "name": "«Сміттєва домішка» — фактична + базисна", "description": "Аналогічно «Вологості». Пріоритет базисної: elevator.cultureBaseIndicators[culture.id] (тобто базисний показник цієї культури саме для цього елеватора — задається у профілі елеватора) → потім fallback на culture.baseMixin (глобальна базисна культури з довідника).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:868-892,81-93 + uk.ts:calc.mixin, ElevatorFormView.vue:35-81" },
+            { "id": "input-weight", "name": "«Фізична вага» (т або кг — за налаштуваннями)", "description": "Одиниця ваги задається у Налаштуваннях («Кілограми (кг)» / «Тонни (т)»). Конвертація у тонни для розрахунків відбувається автоматично у store.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:895-901 + useCalculatorStore.ts:72-75 + uk.ts:settings.weightUnits" },
+            { "id": "storage-time", "name": "«Зберігання, діб»", "description": "Кількість днів зберігання партії. Множник у формулі вартості зберігання, а також впливає на «Мін. ціну продажу після зберігання».", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:902-907 + uk.ts:calc.storageTime" }
+          ]
+        },
+        {
+          "title": "«Порядок підробки» (згорнутий блок)",
+          "features": [
+            { "id": "processing-order", "name": "Порядок підробки (3 опції)", "description": "«Сушка і очистка незалежно» / «Сушка після очистки» / «Очистка після сушки». Впливає на проміжну вагу між операціями. Поряд — ℹ️ з підказкою.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:914-920 + uk.ts:calc.processingOrders" },
+            { "id": "tp-method", "name": "«Розрахунок тонно-відсотків» (3 методи)", "description": "«За формулою Дюваля» / «За відхиленням» / «За відхиленням із списанням за Дювалем» (гібрид). Впливає на формулу drying TP і cleaning TP. ℹ️ з поясненням.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:922-928 + uk.ts:calc.tonnePercentMethods" },
+            { "id": "storage-basis", "name": "«Спосіб зберігання» (3 бази — приховано в KZ)", "description": "«На залікову вагу» / «На фізичну вагу» / «На фізичну вагу мінус усушка». У Казахстані селектор прихований: регуляторно зберігання тільки за фізичною вагою.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:930-937,244 + uk.ts:calc.storageBases" }
+          ]
+        },
+        {
+          "title": "«Тарифи» (згорнутий блок з беджем елеватора)",
+          "features": [
+            { "id": "rates-grid", "name": "Сітка з 7 тарифних комірок", "description": "«Приймання» (грн/т), «Сушка» (грн/т%), «Очистка» (грн/т%), «Зберігання» (грн/т/добу), «Відвантаження» (грн/т), «Логістика» (грн/т), «Додаткові» (грн). Підсвічування активних (>0) зеленим бордером.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:945-958 + uk.ts:calc.rates (section title), calc.loadingRate, calc.dryingRate, calc.cleaningRate, calc.storageRate, calc.unloadingRate, calc.logisticsRate, calc.additionalCosts, calc.unitPerTonne, calc.unitPerTonnePercent, calc.unitPerTonneDay" },
+            { "id": "auto-save-rates", "name": "Авто-збереження тарифів у профіль елеватора", "description": "Якщо у профілі ввімкнено «Оновлювати тарифи з калькулятора» — будь-яка зміна тарифу в калькуляторі через debounce 1 сек пишеться назад у профіль елеватора. Не спрацьовує під час відновлення історичного запису (захист від перезапису поточних тарифів архівними).", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:506-526 + uk.ts:elevators.autoUpdateRates" },
+            { "id": "elevator-badge", "name": "Бедж назви елеватора над сіткою тарифів", "description": "Коли вибраний елеватор — над сіткою тарифів показується його назва (наприклад «Агро-Інвест»), щоб користувач одразу бачив, чиї тарифи відображаються.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:942-944" }
+          ]
+        },
+        {
+          "title": "Обчислення та «Результати»",
+          "features": [
+            { "id": "auto-calc", "name": "Авто-перерахунок (debounce 150мс)", "description": "Будь-яка зміна вхідного поля → автоматичний перерахунок через 150мс. Окремої кнопки «Розрахувати» не потрібно — результати оновлюються самі.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:252-270" },
+            { "id": "credited-weight", "name": "«Залікова вага» + «Втрата ваги»", "description": "Основні результати з підсвіткою. Клік по будь-якому з рядків відкриває «Розшифровка розрахунку» (BottomSheet) з покроковими формулами.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:965-980 + uk.ts:calc.results (section title), calc.creditedWeight, calc.weightLoss, calc.weightLossPercent" },
+            { "id": "service-presets", "name": "3 пресети послуг — «З поля» / «Зі зберігання» / «Повний цикл»", "description": "Сегмент-перемикач (template на CalculatorView.vue:996-1006). Кожен пресет — конкретна комбінація з SERVICE_PRESET_MAP (domain/interfaces/types.ts:68-70): «З поля» — drying+cleaning тільки (без приймання, зберігання, відвантаження, логістики, додаткових). «Зі зберігання» — все ВКЛЮЧАЮЧИ приймання, зберігання, логістику, додаткові, але БЕЗ відвантаження. «Повний цикл» — усі 7 послуг. Кастомізовані toggles після вибору пресета зберігаються окремо (customPresets).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:996-1006 + src/ui/stores/useCalculatorStore.ts:191-196,336-340 + src/domain/interfaces/types.ts:67-70 + uk.ts:calc.presets" },
+            { "id": "service-toggles", "name": "Toggle-кнопки для кожної послуги з її вартістю", "description": "Кнопки для індивідуального ввімкнення/вимкнення кожної послуги (Приймання, Сушка, Очистка, Зберігання, Відвантаження, Логістика, Додаткові). У вигляді «{назва} — {вартість}». Кастомізована комбінація зберігається окремо для кожного пресета (наступного разу при виборі того ж пресета — підставиться твоя комбінація).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:998-1009,342-354 + useCalculatorStore.ts:198-210 + uk.ts:calc.serviceImpact (subsection title), calc.loadingRate, dryingRate, cleaningRate, storageRate, unloadingRate, logisticsRate, additionalCosts" },
+            { "id": "service-cost-summary", "name": "«Вартість обраних послуг» + «Вартість послуг на 1 т зал. ваги»", "description": "Підсумкові рядки після toggle-кнопок: сума ввімкнених послуг і ціна за 1 тонну залікової ваги.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:1011-1018 + uk.ts:calc.selectedServicesCost, costPerCreditedTonne" }
+          ]
+        },
+        {
+          "title": "Аналіз ціни (показується коли заведена «Ціна»)",
+          "features": [
+            { "id": "revenue-analysis", "name": "«Валова виручка» / «Частка послуг у виручці» / «Чиста виручка за партію»", "description": "Валова = вага (фізична або залікова — залежно від типу ціни) × ціна. Чиста = валова − вартість обраних послуг. Частка послуг — % обраних послуг від валової виручки.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:108-129 + uk.ts:calc.grossRevenue, netRevenue, serviceCostPercent" },
+            { "id": "price-conversion", "name": "«Ціна за фізичну вагу» ↔ «Ціна за залікову вагу»", "description": "Якщо ціна введена за фізичну — додатково показується еквівалент за залікову (з врахуванням сервісних витрат). І навпаки. Дозволяє швидко порівняти пропозиції з різним типом ваги.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:131-159 + uk.ts:calc.pricePerPhysical, pricePerCredited" },
+            { "id": "storage-breakeven", "name": "«Мін. ціна продажу після зберігання»", "description": "Найменша ціна за залікову тонну, при якій зберігання себе виправдовує проти варіанту «продати з поля». Враховує ставку зберігання × дні + різницю в обраних послугах.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:161-189 + uk.ts:calc.storageBreakevenPrice" },
+            { "id": "storage-increase", "name": "«Необхідне зростання ціни» (+X грн/т)", "description": "Різниця між поточною ціною та беззбитковою для зберігання. Користувач одразу бачить «скільки треба чекати росту ціни» аби зберігання було рентабельне.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:185-189 + uk.ts:calc.storagePriceIncrease" }
+          ]
+        },
+        {
+          "title": "Toolbar з діями над результатом",
+          "features": [
+            { "id": "save-history", "name": "💾 «Зберегти розрахунок» в Історію", "description": "Відкриває діалог з полем «Примітка» → зберігає поточну калькуляцію в Історії з повним станом (всі поля input, result, UI-стан service toggles + активний пресет + кастомізації пресетів).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:560-595,1072-1074 + uk.ts:calc.save, ledger.note, common.saved, settings.historyLimit (paywall toast при перевищенні Free-ліміту 10 записів)" },
+            { "id": "receive-ledger", "name": "📥 «Оприбуткувати» в Облік", "description": "Кнопка з'являється тільки якщо обрано і елеватор, і культуру. Створює надходження в Облік з усіма даними партії (включно з повним breakdown по операціях, для подальшого аудиту). Паралельно мовчки дзеркалить розрахунок в Історію (з дедуплікацією — якщо вже зберігалось перед тим).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:609-683,1075-1082 + uk.ts:ledger.receive, ledger.received, common.error, settings.ledgerLimit (paywall toast — облік тільки Pro)" },
+            { "id": "share-pdf", "name": "📤 «Поділитись» — генерація PDF", "description": "Генерує PDF з усіма параметрами, результатами, аналізом для всіх 3 пресетів (З поля / Зі зберігання / Повний цикл) і breakdown по операціях. Відкриває системний діалог Share для відправки у Telegram, Mail тощо.", "tags": ["live", "pro"], "source": "src/ui/views/CalculatorView.vue:533-553,1083-1085 + uk.ts:common.share, common.pdf, settings.exportLimit (paywall toast — експорт PDF тільки Pro)" },
+            { "id": "reset", "name": "🔄 «Очистити»", "description": "Очищує всі поля, повертає налаштування до дефолтних з Settings (метод TP, спосіб зберігання тощо), видаляє persisted state з local storage.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:663-696 + uk.ts:calc.reset" },
+            { "id": "compare-elevator", "name": "«Порівняти з іншим елеватором»", "description": "Кнопка з'являється якщо в системі >1 елеватор і поточний обраний. Відкриває BottomSheet зі списком інших елеваторів → при тапі переносить поточний розрахунок на той елеватор з його тарифами.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:1091-1098,386-393 + uk.ts:calc.compareElevator" }
+          ]
+        },
+        {
+          "title": "Bottom sheets з деталями",
+          "features": [
+            { "id": "breakdown-sheet", "name": "«Розшифровка розрахунку»", "description": "Покрокові формули: «Втрата при сушці (Дюваль)», «Втрата при очистці (Дюваль)», проміжна «Вага після очистки» / «Вага після сушки», «Тонно-відсотки сушки/очистки», «Загальна втрата маси». Якщо у Налаштуваннях задано «Зерно у відходах, %» — окремий блок «Зерно у відходах» з кількістю втраченого зерна у тоннах.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:1108-1193 + uk.ts:calc.breakdown (sheet title), calc.physicalWeight, calc.humidityDiff, calc.mixinDiff, calc.humidityLoss («Втрата при сушці (Дюваль)»), calc.mixinLoss («Втрата при очистці (Дюваль)»), calc.dryingTonnePercents, calc.cleaningTonnePercents, calc.totalLoss, calc.totalLossNote, calc.weightAfterCleaning, calc.weightAfterDrying, calc.grainInWasteLoss, calc.formula" },
+            { "id": "info-tips", "name": "ℹ️ Підказки на полях", "description": "Кліком на ℹ️ біля «Порядок підробки», «Розрахунок тонно-відсотків», «Спосіб зберігання» — поп-ап з поясненням методики (тексти з uk.ts: processingOrderTip / tonnePercentMethodTip / storageBasisTip).", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:919,927,936" }
+          ]
+        },
+        {
+          "title": "Робота з історичними записами",
+          "features": [
+            { "id": "restore-record", "name": "Повне відновлення з кліку у вкладці «Історія»", "description": "При кліку по запису у HistoryView — restoreFromRecord відновлює: усі 19 полів вводу + selectedCultureName + grainInWastePercent + UI-стан (serviceSelection, activePreset, customPresets). Захищено від випадкового перезапису поточних тарифів елеватора архівними (Bug #87-C-fix).", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:288-377 + HistoryView.vue:64-68" },
+            { "id": "switch-to-actual", "name": "Авто-перемикання на актуальні дані при першому ж редагуванні", "description": "Якщо ти у режимі історичного перегляду торкнувся будь-якого поля — тарифи/базисні показники/ціна автоматично перемикаються на поточні значення елеватора+культури (не залишаються архівними). Введене тобою значення зберігається.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:388-440" },
+            { "id": "grain-in-waste-per-calc", "name": "«Зерно у відходах, %» — окремо для кожного історичного запису", "description": "Кожен історичний запис зберігає СВІЙ grainInWastePercent на момент розрахунку. Старі розрахунки лишаються точними навіть якщо у Налаштуваннях глобальний відсоток згодом змінили.", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:41-44,340 + uk.ts:settings.grainInWaste" }
+          ]
+        },
+        {
+          "title": "Збереження стану між сесіями",
+          "features": [
+            { "id": "auto-persist", "name": "Авто-збереження стану калькулятора (debounce 500мс)", "description": "При зміні будь-якого поля state записується в local storage: serviceSelection, активний пресет, кастомізації пресетів, обраний елеватор+культура, ціна, тип ваги, додаткові витрати, логістика. Якщо елеватор НЕ обраний — також зберігаються базисні показники і всі тарифи (ручний режим).", "tags": ["live", "free"], "source": "src/ui/stores/useCalculatorStore.ts:612-661" },
+            { "id": "restore-on-launch", "name": "Відновлення контексту при запуску додатка", "description": "При відкритті калькулятора елеватор обирається за пріоритетом: 1) збережений у persisted state, 2) дефолтний з Налаштувань («Елеватор за замовчуванням»), 3) автоматично якщо в системі єдиний елеватор. Так само з культурою.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:45-77 + uk.ts:settings.defaultElevator" },
+            { "id": "flush-on-unmount", "name": "Flush ціни при виході зі екрана калькулятора", "description": "При переході на інший екран — pending auto-persist таймер примусово виконується, щоб не загубилось останнє редагування ціни в elevator.culturePrices або довіднику культур.", "tags": ["live", "free"], "source": "src/ui/views/CalculatorView.vue:296-316" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prices",
+      "title": "Ціни",
+      "icon": "💰",
+      "description": "Список усіх культур з поточними цінами. Можна перемикатись між «Загальні ціни» (з довідника культур) і цінами конкретного елеватора. Інлайн-редагування, drag-reorder, історія цін, приховування культур.",
+      "groups": [
+        {
+          "title": "Шапка та фільтри",
+          "features": [
+            { "id": "prices-title", "name": "Заголовок «Ціни» + індикатор типу", "description": "Заголовок (nav.prices = «Ціни») + рядок «Тип ціни: Залікову вагу / Фізичну вагу» — береться з налаштування «Ціна за» (settings.defaultGrainPriceType).", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:233-238 + uk.ts:nav.prices, prices.priceType, calc.grainPriceTypes" },
+            { "id": "prices-elevator-filter", "name": "Фільтр-селектор елеватора", "description": "Вибір: «Загальні ціни» (prices.allPrices — показ глобальних цін з довідника) або конкретний елеватор (показ цін цього елеватора, з fallback на загальну ціну позначкою «загальна»).", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:240-244 + uk.ts:prices.allPrices, prices.general" }
+          ]
+        },
+        {
+          "title": "Список культур з цінами",
+          "features": [
+            { "id": "prices-list-empty", "name": "Empty state «Культури ще не додані»", "description": "Якщо в довіднику немає культур — текст cultures.empty («Культури ще не додані»). Юзер має додати їх у Налаштування → Дані → Довідник культур.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:247-249 + uk.ts:cultures.empty" },
+            { "id": "prices-row-sparkline", "name": "Sparkline-графік історії цін", "description": "Поряд з назвою культури — міні-графік історії цін (PriceSparkline). Показується тільки коли є ≥2 точки історії. При обраному елеваторі з власною історією цін — show його серія; інакше — fallback на глобальну історію культури.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:82-86,284-289" },
+            { "id": "prices-inline-edit", "name": "Інлайн-редагування ціни (тап на значення)", "description": "Тап на ціну → input + кнопка ✓. Enter або тап ✓ або blur — зберігає. Якщо вибраний елеватор — зберігає в elevator.culturePrices. Без елеватора — додає новий запис у глобальну історію цін культури.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:92-124,292-326" },
+            { "id": "prices-color-indicator", "name": "Колір ціни — синій / сірий «загальна»", "description": "При обраному елеваторі: синім фоном — ціна цього елеватора; сірим + підпис «загальна» (prices.general) — fallback на глобальну ціну культури.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:314-325" }
+          ]
+        },
+        {
+          "title": "Drag-reorder + видимість",
+          "features": [
+            { "id": "prices-drag-mouse", "name": "Drag-and-drop сортування культур", "description": "Хват за іконку ☰ зліва — можна перетягнути культуру вгору/вниз. Порядок зберігається в settings.cultureOrder.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:126-150,265-280" },
+            { "id": "prices-drag-touch", "name": "Drag-reorder на тачі (іконка ☰)", "description": "Touch-handle спеціально 44×44 (Apple HIG min). Активується при пересуванні >10px. Знаходить рядок на якому палець через bounding rect. Hidden-секція не реордериться (виключена з touch-collection).", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:152-209,272-280" },
+            { "id": "prices-swipe-hide", "name": "Свайп вправо → «Приховати» культуру", "description": "prices.hide = «Приховати». Прихована культура зникає зі списку (для цього і всіх інших екранів — селектор калькулятора, облік тощо). Зберігається у settings.hiddenCultureIds.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:212-214,348-356 + uk.ts:prices.hide" },
+            { "id": "prices-show-hidden", "name": "Toggle «Показати приховані (N)»", "description": "Кнопка під списком: prices.showHidden / prices.hideHidden. Розкриває окремий блок з прихованими культурами + кнопка 👁 для повернення в список.", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:228,360-383 + uk.ts:prices.showHidden, prices.hideHidden" }
+          ]
+        },
+        {
+          "title": "Історія цін культури",
+          "features": [
+            { "id": "prices-swipe-history", "name": "Свайп вліво → «Історія цін»", "description": "cultures.priceHistory = «Історія цін». Розкриває блок під рядком зі списком дата+ціна (latest first).", "tags": ["live", "free"], "source": "src/ui/views/PricesView.vue:216-226,329-346 + uk.ts:cultures.priceHistory" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cultures",
+      "title": "Довідник культур",
+      "icon": "🌾",
+      "description": "Центральний реєстр культур. Тут заводяться/редагуються/видаляються культури з базисними показниками (вологість/домішка) та історією цін. Доступ через Налаштування → Дані → Довідник культур.",
+      "groups": [
+        {
+          "title": "Шапка та пошук",
+          "features": [
+            { "id": "cultures-title", "name": "Заголовок «Довідник культур»", "description": "cultures.title = «Довідник культур».", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:163 + uk.ts:cultures.title" },
+            { "id": "cultures-search", "name": "Пошук за назвою культури", "description": "Поле «Пошук...» (common.search), фільтрує список по culture.name. При пустому результаті — «Нічого не знайдено» (common.noResults).", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:24-30,247-255,272-274 + uk.ts:common.search, common.noResults" }
+          ]
+        },
+        {
+          "title": "Додавання нової культури",
+          "features": [
+            { "id": "cultures-add-button", "name": "Кнопка «+ Нова культура»", "description": "cultures.addNew = «Нова культура». Розкриває форму додавання.", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:167-169 + uk.ts:cultures.addNew" },
+            { "id": "cultures-add-form", "name": "Форма додавання культури (5 полів)", "description": "1) «Назва культури» (elevators.cultureName) 2) «Вологість базисна, %» (calc.baseHumidity) 3) «Сміттєва домішка базисна, %» (calc.baseMixin) 4) «Ціна за тонну» (cultures.pricePerTonne) 5) «Дата» (cultures.priceDate, default = сьогодні). Кнопка «Додати культуру» (cultures.add) активна тільки коли назва + ціна заповнені. Toast «Збережено в історію» (common.saved).", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:33-83,170-245 + uk.ts:cultures.add, elevators.cultureName, calc.baseHumidity, calc.baseMixin, cultures.pricePerTonne, cultures.priceDate" }
+          ]
+        },
+        {
+          "title": "Картка культури",
+          "features": [
+            { "id": "cultures-default", "name": "Default-культура — клік по картці", "description": "Тап по картці = встановити цю культуру як default. Бедж «За замовчуванням» (elevators.defaultCulture) у верхньому правому. Повторний тап — зняти. Зберігається в settings.defaultCultureId.", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:86-88,283-286 + uk.ts:elevators.defaultCulture" },
+            { "id": "cultures-card-header", "name": "Назва + sparkline + ціна", "description": "Рядок 1: назва культури, PriceSparkline (≥2 точки історії, 80×28px), поточна ціна (клікабельна → інлайн-edit).", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:287-312" },
+            { "id": "cultures-inline-edit-price", "name": "Інлайн-редагування поточної ціни", "description": "Тап на ціну → input + ✓. Зберігає через store.addPrice (додає новий запис до culture.prices, з today as date). Toast «Збережено в історію».", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:114-137,290-311" },
+            { "id": "cultures-base-display", "name": "Базисні показники культури з кнопкою «Редагувати»", "description": "Рядок «Вологість базисна: 14% · Сміттєва домішка базисна: 2% · [Редагувати]». Глобальні базисні культури з довідника (а НЕ per-elevator overrides, ті задаються у профілі елеватора).", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:313-317 + uk.ts:calc.baseHumidity, baseMixin, common.edit" },
+            { "id": "cultures-base-edit", "name": "Інлайн-форма редагування базисних показників", "description": "Розкривна форма з 2 полями + кнопками «Зберегти»/«Скасувати». Зберігає через store.updateBaseIndicators.", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:91-112,319-349" }
+          ]
+        },
+        {
+          "title": "Дії над культурою",
+          "features": [
+            { "id": "cultures-history-toggle", "name": "Кнопка «Історія цін» (розкривна)", "description": "cultures.priceHistory. Розкриває список дата+ціна (latest first).", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:155-157,352-354,367-377" },
+            { "id": "cultures-delete", "name": "Кнопка-кошик «Видалити»", "description": "Підтвердження через confirm sheet «Видалити \"{name}\"?». Toast «Культуру видалено» (cultures.deleted) або помилка.", "tags": ["live", "free"], "source": "src/ui/views/CulturesView.vue:139-153,355-363 + uk.ts:cultures.deleted" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "elevators",
+      "title": "Елеватори",
+      "icon": "🏭",
+      "description": "Профілі елеваторів — базисні показники, тарифи, культури-на-цьому-елеваторі з власними цінами, базисами і тарифами, історія тарифів. Окремий список + повна форма редагування.",
+      "groups": [
+        {
+          "title": "Список елеваторів (ElevatorsView)",
+          "features": [
+            { "id": "elevators-title", "name": "Заголовок «Профілі елеваторів»", "description": "elevators.title = «Профілі елеваторів».", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:72 + uk.ts:elevators.title" },
+            { "id": "elevators-add", "name": "Кнопка «+ Додати елеватор» з paywall", "description": "elevators.add. Free план — max 1 елеватор (paywall.canAddElevator); якщо перевищено — toast settings.elevatorLimit «Безкоштовний план: максимум 1 елеватор. Перейдіть на Pro для необмежених.». Pro — необмежено.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:35-41,73-75 + uk.ts:elevators.add, settings.elevatorLimit" },
+            { "id": "elevators-search", "name": "Пошук за назвою елеватора", "description": "Поле common.search; фільтрує по name.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:27-31,78-86" },
+            { "id": "elevators-empty", "name": "Empty state «Збережених елеваторів немає»", "description": "elevators.empty з іконкою силоса.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:90-98 + uk.ts:elevators.empty" },
+            { "id": "elevators-card", "name": "Картка елеватора (назва + лічильник культур)", "description": "Назва + «N культур» (elevators.culturesCount) — кількість per-culture base indicators. Тап → редагування.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:100-115 + uk.ts:elevators.culturesCount" },
+            { "id": "elevators-swipe", "name": "Свайп з actions: «Редагувати» + «Видалити»", "description": "Видалення з confirm «Видалити елеватор \"{name}\"?» (elevators.confirmDelete). Toast elevators.deleted.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorsView.vue:52-66,117-126 + uk.ts:elevators.deleted, elevators.confirmDelete" }
+          ]
+        },
+        {
+          "title": "Форма елеватора — Назва (ElevatorFormView)",
+          "features": [
+            { "id": "ef-title", "name": "Заголовок «Додати елеватор» або «Редагувати»", "description": "Динамічний: elevators.add при додаванні, elevators.edit при редагуванні.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:153-155 + uk.ts:elevators.add, elevators.edit" },
+            { "id": "ef-name-inline", "name": "Інлайн-edit назви елеватора (тільки edit-mode)", "description": "При редагуванні: тап на H3 з назвою → input. Enter або blur — зберігає, якщо назва не порожня. Поле «Назва елеватора» (elevators.name).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:357-362,414-432" }
+          ]
+        },
+        {
+          "title": "Секція «Ціни на культури»",
+          "features": [
+            { "id": "ef-culture-prices-section", "name": "Згортаюча секція з картками культур", "description": "elevators.culturePrices = «Ціни на культури». Кожна культура — картка з 3 рядками: header, базисні показники, дії.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:434-551 + uk.ts:elevators.culturePrices" },
+            { "id": "ef-default-culture", "name": "Default-культура (клік по картці)", "description": "Тап по картці = встановити цю культуру як default для елеватора. Бедж «За замовчуванням» (elevators.defaultCulture). Зберігається у elevator.defaultCultureId.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:445-446,448" },
+            { "id": "ef-price-inline", "name": "Інлайн-edit ціни культури на цьому елеваторі", "description": "Тап на ціну → input + ✓. Зберігає в elevator.culturePrices[culture.id]. Auto-save в БД ще під час редагування форми (при isEditing). Якщо ціни немає — fallback з культури з підписом «загальна» (prices.general). PriceSparkline якщо є per-elevator price history.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:87-111,449-479" },
+            { "id": "ef-culture-base-edit", "name": "Per-culture базисні показники (для цього елеватора)", "description": "Рядок «Вологість базисна: 13% · Сміттєва домішка базисна: 2% · Редагувати». Розкривна форма з 2 полями. Зберігає в elevator.cultureBaseIndicators[culture.id] — це override базисних саме для цієї культури саме на цьому елеваторі (fallback на culture.baseHumidity/baseMixin).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:66-85,480-504" },
+            { "id": "ef-culture-history", "name": "«Історія цін» на елеваторі для культури", "description": "Розкривна. Якщо порожня — текст elevators.ratesHistoryEmpty («Тарифи ще не змінювались»). Інакше — список дата+ціна.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:507-510,517-524" },
+            { "id": "ef-unlink-culture", "name": "Видалити культуру зі списку культур елеватора", "description": "Кнопка-кошик біля кожної культури — переносить її в excludedCultureIds. Культура зникає зі списку культур ЦЬОГО елеватора (на інших залишається).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:49-52,511-516" },
+            { "id": "ef-excluded-show", "name": "Toggle «Показати приховані (N)» для виключених", "description": "prices.showHidden / hideHidden. Розкриває виключені культури з кнопкою 👁 для повернення в список.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:38,528-544 + uk.ts:prices.showHidden" },
+            { "id": "ef-auto-update-prices", "name": "Чекбокс «Оновлювати ціни з калькулятора»", "description": "elevators.autoUpdatePrices. Якщо on — зміна ціни в калькуляторі (за обраного цього елеватора) auto-записує в elevator.culturePrices.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:546-549 + uk.ts:elevators.autoUpdatePrices" }
+          ]
+        },
+        {
+          "title": "Секція «Тарифи»",
+          "features": [
+            { "id": "ef-rates-grid", "name": "Сітка з 7 тарифних комірок", "description": "Та сама що в калькуляторі: Приймання / Сушка / Очистка / Зберігання / Відвантаження / Логістика / Додаткові. Inline-input на кожній.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:364-372,554-568" },
+            { "id": "ef-auto-update-rates", "name": "Чекбокс «Оновлювати тарифи з калькулятора»", "description": "elevators.autoUpdateRates. Зміни тарифів у калькуляторі auto-зберігаються в elevator.rates (debounce 1с).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:569-572 + uk.ts:elevators.autoUpdateRates" },
+            { "id": "ef-single-tariff", "name": "Чекбокс «Єдині тарифи для всіх культур»", "description": "elevators.singleTariff. Якщо OFF — для кожної культури розкривається окрема секція з своїми тарифами (override). Підказка «Порожні поля — використовуються основні тарифи елеватора» (elevators.cultureRatesHint).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:573-576,647-673 + uk.ts:elevators.singleTariff, cultureRatesHint" },
+            { "id": "ef-rates-history", "name": "«Історія тарифів» — snapshot з кнопкою «Застосувати»", "description": "elevators.ratesHistory. Розкривна. Кожен snapshot: «Тарифи від {дата}» (elevators.ratesFrom) + повна сітка тарифів + per-culture тарифи + кнопка «Застосувати» (elevators.useTheseRates) — підставляє ці тарифи у форму.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:325-348,577-643 + uk.ts:elevators.ratesHistory, ratesFrom, useTheseRates" }
+          ]
+        },
+        {
+          "title": "Per-culture тарифи (коли «Єдині тарифи» OFF)",
+          "features": [
+            { "id": "ef-per-culture-rates", "name": "Окрема секція тарифів для кожної культури", "description": "Кожна культура — згортаюча секція «{назва} — Тарифи». 5 input-комірок (приймання/сушка/очистка/зберігання/відвантаження). Порожні поля — fallback на основні тарифи елеватора.", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:315-323,646-673" }
+          ]
+        },
+        {
+          "title": "«Порядок підробки» (згортаюча секція, default closed)",
+          "features": [
+            { "id": "ef-processing", "name": "3 селектори обробки/TP/способу зберігання", "description": "calc.processingOrder, calc.tonnePercentMethod, calc.storageBasis — повний дублікат селекторів з калькулятора. У KZ селектор способу зберігання прихований (примусово physical weight).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:676-693 + uk.ts:calc.processingOrders, tonnePercentMethods, storageBases" }
+          ]
+        },
+        {
+          "title": "Footer / збереження",
+          "features": [
+            { "id": "ef-actions", "name": "Sticky-кнопки «Зберегти» / «Скасувати»", "description": "Зберегти валідує форму (тільки name.trim() обов'язковий), показує toast common.saved, переходить назад на /elevators. Скасувати — для редагування ROLLBACK неузгоджених changes до culturePrices (порівнює з _originalCulturePrices snapshot).", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:291-313,374-386,700-712" },
+            { "id": "ef-auto-save-leave", "name": "Авто-збереження при свайпі назад / закритті екрану", "description": "onBeforeRouteLeave (Vue Router hook): якщо isEditing + валідна форма + ще не submitted — автоматично зберігає payload. Користувач не втрачає правки якщо вийшов кнопкою «Назад».", "tags": ["live", "free"], "source": "src/ui/views/ElevatorFormView.vue:389-400" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ledger",
+      "title": "Облік",
+      "icon": "📋",
+      "description": "Облік зерна на елеваторах — оприбуткування, відвантаження, аналіз собівартості, ринкова ціна, прибуток. Підтримка двох методів обліку (Середньозважена / FIFO). Pro-фічі: експорт «Перегляд реєстру» (Форма 36) і «Аналіз партії» як PDF.",
+      "groups": [
+        {
+          "title": "Шапка та фільтр",
+          "features": [
+            { "id": "ledger-title", "name": "Заголовок «Облік зерна»", "description": "ledger.title.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:774 + uk.ts:ledger.title" },
+            { "id": "ledger-filter", "name": "Фільтр по елеватору", "description": "«Всі елеватори» (ledger.allElevators) + конкретні. Фільтрує активні + архівні баланси.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:36-53,777-781 + uk.ts:ledger.allElevators" },
+            { "id": "ledger-total", "name": "Рядок «Загальний залишок»", "description": "ledger.totalBalance = «Загальний залишок: 123.456 т ≈ 1 234 567 грн». Сума по всім відфільтрованим балансам.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:762-766,864-868 + uk.ts:ledger.totalBalance" },
+            { "id": "ledger-empty", "name": "Empty state «Операцій ще немає»", "description": "ledger.empty.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:870-873 + uk.ts:ledger.empty" }
+          ]
+        },
+        {
+          "title": "Загальні кнопки операцій",
+          "features": [
+            { "id": "ledger-receive-general", "name": "Кнопка «Оприбуткувати» (зелена)", "description": "ledger.receive. Відкриває загальну форму, де треба вибрати елеватор + культуру. Видно тільки коли жодна карта балансу не розгорнута.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:117-127,785-792 + uk.ts:ledger.receive" },
+            { "id": "ledger-dispatch-general", "name": "Кнопка «Відвантажити» (оранжева)", "description": "ledger.dispatch. У списку культур для відвантаження — лише ті у яких є залишок >0. Видно тільки коли жодна карта не розгорнута.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:161-169,793-800 + uk.ts:ledger.dispatch" }
+          ]
+        },
+        {
+          "title": "Форма операції (загальна та context)",
+          "features": [
+            { "id": "ledger-form-fields", "name": "Поля форми (8 полів)", "description": "1) «Елеватор» 2) «Культура» 3) «Фізична вага» (ledger.physicalWeightLabel) 4) «Дата» (cultures.priceDate) 5) «Вологість фактична» (ledger.humidityLabel) 6) «Сміттєва домішка фактична» (ledger.mixinLabel) 7) «Ціна» (calc.grainPrice для receipt; «Ціна продажу» ledger.salePrice — «необов'язково» для dispatch) 8) «Примітка» (ledger.note).", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:99-114,803-828 + uk.ts:ledger.physicalWeightLabel, humidityLabel, mixinLabel, salePrice" },
+            { "id": "ledger-form-base", "name": "Автоматичне підставлення базисних показників", "description": "При виборі елеватора+культури — рядок «Вологість базисна: 13 · Сміттєва домішка базисна: 2». Пріоритет: per-culture-per-elevator → культура (глобальна) → елеватор (загальна) → fallback 14%/2%.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:73-82,809-812" },
+            { "id": "ledger-form-credited-preview", "name": "Preview «Залікова вага» + формула", "description": "ledger.creditedWeightPreview. Розраховує за формулою Дюваля (з врахуванням grainInWastePercent з налаштувань). Показує перехід «123.456 т → 121.789 т».", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:55-71,176-186,829-834 + uk.ts:ledger.creditedWeightPreview" },
+            { "id": "ledger-form-writeoff", "name": "Preview «Вартість списання» для відвантаження", "description": "ledger.writeOffValue + підказка «надходження + зберігання + послуги» (ledger.writeOffValueHint). Розраховується через getWriteOffSnapshot (lock-aware метод обліку). Якщо pool locked в інший метод — бедж dashboard.method.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:188-232,835-847 + uk.ts:ledger.writeOffValue, writeOffValueHint" },
+            { "id": "ledger-form-overbalance", "name": "Попередження «Більше за залишок (X т)»", "description": "ledger.overBalanceWarn. Блокує submit якщо credited weight перевищує pool balance (з допуском 0.001 т).", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:235-256,848-850 + uk.ts:ledger.overBalanceWarn" },
+            { "id": "ledger-form-value-preview", "name": "Preview вартості для receipt («≈ X грн»)", "description": "ledger.value = «Вартість». Показується якщо введена ціна. credited × price.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:851-854 + uk.ts:ledger.value" },
+            { "id": "ledger-form-submit", "name": "Кнопка «Записати в реєстр»", "description": "ledger.writeToRegister. Disabled поки форма невалідна. Paywall guard: лише Pro може додавати операції; на Free — toast settings.ledgerLimit «Облік зерна доступний лише в Pro-версії».", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:258-332,856 + uk.ts:ledger.writeToRegister, settings.ledgerLimit" }
+          ]
+        },
+        {
+          "title": "Картка балансу + Аналіз собівартості",
+          "features": [
+            { "id": "balance-card-header", "name": "Картка балансу — елеватор + культура + обсяги", "description": "Header: елеватор + культура. 3 рядки: «Надходження» (ledger.received), «Відвантаження» (ledger.dispatched), «Залишок» (ledger.balance) з вартістю якщо є.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:883-903 + uk.ts:ledger.received («Надходження»), ledger.dispatched («Відвантаження»), ledger.balance («Залишок»), calc.unitTonne" },
+            { "id": "cost-analysis", "name": "Інлайн «Аналіз собівартості» (4 рядки)", "description": "Прямо у картці балансу: «Ціна надходження» (dashboard.purchasePrice), «Послуги елеватора» (dashboard.serviceCost — лише якщо всі надходження мають serviceCostPerTonne), «Поточне зберігання» (dashboard.storageCost — нарахування storage_rate × days), «Повна вартість» (dashboard.fullCost). Розрахунок через getWriteOffSnapshot (lock-aware).", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:454-532,906-934 + uk.ts:dashboard.purchasePrice, serviceCost, storageCost, fullCost" },
+            { "id": "method-badge", "name": "Бедж методу обліку (FIFO / середньозважена)", "description": "Показується ТІЛЬКИ якщо pool locked в метод що відрізняється від поточного settings.valuationMethod. Інакше — прихований (без шуму). Колір: синій (FIFO), фіолетовий (середньозважена).", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:911-918 + uk.ts:dashboard.method («Метод обліку»), dashboard.method_fifo («FIFO»), dashboard.method_weighted_average («Середньозважена»)" },
+            { "id": "market-price-inline", "name": "Інлайн-edit «Ринкова ціна»", "description": "dashboard.marketPrice. Тап на значення → input. Enter або blur — зберігає в elevator.culturePrices. Esc — скасування. Якщо ціна 0 — підпис «—» (dashboard.marketPriceTap). Toast ledger.priceUpdated. Pricing source: elevator override → fallback на культурну глобальну ціну.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:338-390,935-972 + uk.ts:dashboard.marketPrice («Ринкова ціна»), dashboard.marketPriceTap («—» placeholder), ledger.priceUpdated («Ринкову ціну оновлено»)" },
+            { "id": "profit-loss", "name": "Рядок «Прибуток / збиток»", "description": "dashboard.profitLoss. Sell price (ринкова) − Повна вартість. Зелений фон якщо ≥0, червоний якщо <0. У темній темі — softer pastels.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:973-976 + uk.ts:dashboard.profitLoss" }
+          ]
+        },
+        {
+          "title": "Розгорнута картка — операції",
+          "features": [
+            { "id": "balance-expand", "name": "Тап по картці — розгортає операції", "description": "Розкриває список усіх операцій (надходження/відвантаження/коригування) у зворотньому хронологічному порядку.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:403-414,981-1112" },
+            { "id": "context-buttons", "name": "Context-кнопки «Оприбуткувати» / «Відвантажити»", "description": "В розгорнутій картці — компактні кнопки 44×44 для додавання операції з elevator+culture locked. «Відвантажити» доступна тільки якщо balance > 0.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:130-141,983-997" },
+            { "id": "op-row", "name": "Рядок операції з типом та деталями", "description": "Бедж типу (ledger.opType.receipt / dispatch / adjustment), дата, ±фіз. вага, якість (humidity%/mixin%), → залікова вага, ціна за тонну, нотатка.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:534,1052-1065 + uk.ts:ledger.opType" },
+            { "id": "op-edit", "name": "Свайп → «Редагувати» операцію", "description": "Розкриває inline-форму редагування. Захист «Можна змінити тільки примітку» (ledger.cantEditNonFinal) — якщо для receipt уже є dispatch'и, math-поля заблоковані. Note-only зміни дозволені. Toast ledger.updated.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:541-623,1066-1099 + uk.ts:ledger.cantEditNonFinal, ledger.updated" },
+            { "id": "op-delete", "name": "Свайп → «Видалити» операцію", "description": "Захист: «Не видалити: є новіші операції ({count})» (ledger.cantDeleteNonFinal) — щоб не зламати FIFO/cost-basis. Confirm ledger.confirmDelete. Toast ledger.deleted.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:626-648,1106-1109 + uk.ts:ledger.cantDeleteNonFinal, deleted" }
+          ]
+        },
+        {
+          "title": "Свайп-actions картки балансу",
+          "features": [
+            { "id": "ledger-archive", "name": "Свайп вправо → «В архів»", "description": "ledger.archive. Confirm «Перемістити реєстр «{elevator} — {culture}» в архів?» (ledger.confirmArchive). Toast ledger.archiveDone. Записує cutoff-timestamp; ops до нього лишаються видимими в архіві.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:742-754,1118-1123 + uk.ts:ledger.archive, archiveDone, confirmArchive" },
+            { "id": "ledger-preview", "name": "Свайп вліво → «Перегляд реєстру»", "description": "ledger.preview. Відкриває BottomSheet з iframe-HTML (Форма 36 з усіма операціями). Кнопка common.share генерує PDF + системний share-діалог. Pro-only (paywall.canExport).", "tags": ["live", "pro"], "source": "src/ui/views/LedgerView.vue:653-695,1125-1128,1199-1208 + uk.ts:ledger.preview («Перегляд реєстру»), common.share, settings.exportLimit (paywall toast)" },
+            { "id": "ledger-analysis", "name": "Свайп вліво (2-га кнопка) → «Аналіз партії»", "description": "ledger.analysis. BottomSheet з HTML-аналізом (середня ціна, послуги, поточне зберігання, прибуток, рекомендації). Кнопка common.share → PDF. Pro-only.", "tags": ["live", "pro"], "source": "src/ui/views/LedgerView.vue:698-740,1129-1132,1210-1219 + uk.ts:ledger.analysis («Аналіз партії»), common.share, settings.exportLimit (paywall toast)" }
+          ]
+        },
+        {
+          "title": "Архів",
+          "features": [
+            { "id": "archive-toggle", "name": "Toggle «Показати архів» / «Сховати архів»", "description": "ledger.showArchive / hideArchive. Показує заблоковані періоди з cutoff-timestamps.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:48,1136-1142 + uk.ts:ledger.showArchive, hideArchive" },
+            { "id": "archived-cards", "name": "Архівні картки — згорнуті, з періодом", "description": "Кожна — згорнута SectionCard. Розгорнута показує операції періоду + загальні залишки. Свайп «Розархівувати» (ledger.unarchive) тільки на останньому періоді + якщо немає active balance для тієї ж пари.", "tags": ["live", "free"], "source": "src/ui/views/LedgerView.vue:432-452,756-759,1144-1196 + uk.ts:ledger.unarchive, unarchiveDone" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "Історія",
+      "icon": "🕐",
+      "description": "Журнал збережених розрахунків з калькулятора. Кожен запис — повний snapshot стану калькулятора з можливістю відновлення в один клік.",
+      "groups": [
+        {
+          "title": "Шапка",
+          "features": [
+            { "id": "history-title", "name": "Заголовок «Історія розрахунків»", "description": "history.title.", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:76 + uk.ts:history.title" },
+            { "id": "history-clear-all", "name": "Кнопка-кошик «Очистити історію»", "description": "history.clearAll. Confirm history.confirmClear = «Видалити всю історію розрахунків?». Heavy haptic перед confirm (Apple HIG).", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:42-51,77-87 + uk.ts:history.clearAll, confirmClear" },
+            { "id": "history-search", "name": "Пошук по записах", "description": "Шукає за елеватором, датою, текстом нотатки. Empty при пустому пошуку — common.noResults.", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:32-40,90-98,111-113 + uk.ts:common.search" }
+          ]
+        },
+        {
+          "title": "Список записів",
+          "features": [
+            { "id": "history-empty", "name": "Empty state «Розрахунків ще не було»", "description": "history.empty з іконкою годинника.", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:102-109 + uk.ts:history.empty" },
+            { "id": "history-card", "name": "Картка запису з ключовими цифрами", "description": "Header: дата + назва елеватора (зелений). Рядок з культурою + ціною за тонну (якщо є). Деталі: «Вага» (history.weight), «Залікова вага» (calc.creditedWeight) — підсвічена, «Загальна вартість послуг» (calc.totalCost) — підсвічена. Якщо є нотатка — italic під деталями.", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:115-152 + uk.ts:history.weight, calc.creditedWeight, calc.totalCost" },
+            { "id": "history-tap-restore", "name": "Тап по картці → відновити в калькулятор", "description": "Викликає calc.restoreFromRecord(record) — повне відновлення всіх 19 input полів + UI state + selectedCultureName + grainInWastePercent + activatesHistoricalBanner. router.push('/'). У калькуляторі показується жовтий банер «Завантажено з історії від {дата}».", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:64-70,121 + useCalculatorStore.ts:288-377 + uk.ts:history.loadedFrom" },
+            { "id": "history-swipe-delete", "name": "Свайп → «Видалити»", "description": "common.delete. Medium-haptic. Toast history.deleted = «Запис видалено» або common.error.", "tags": ["live", "free"], "source": "src/ui/views/HistoryView.vue:53-62,153-161 + uk.ts:common.delete, history.deleted" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Налаштування",
+      "icon": "⚙️",
+      "description": "Глобальні налаштування додатка: мова, тема, валюта, дефолти калькулятора, метод обліку зерна, % зерна у відходах, керування підпискою, доступ до довідників.",
+      "groups": [
+        {
+          "title": "Загальне (Загальне)",
+          "features": [
+            { "id": "set-language", "name": "Мова інтерфейсу", "description": "settings.language. UA / RU / EN / KK (4 локалі, SUPPORTED_LOCALES).", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:266-272 + uk.ts:settings.title («Налаштування»), settings.general (section), settings.language" },
+            { "id": "set-theme", "name": "Тема (Авто / Світла / Темна)", "description": "settings.themes.auto / light / dark.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:275-282 + uk.ts:settings.theme, settings.themes.auto, settings.themes.light, settings.themes.dark" },
+            { "id": "set-weight-unit", "name": "Одиниця ваги (Кілограми / Тонни)", "description": "settings.weightUnit. Впливає на лейбли в калькуляторі + конвертацію.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:285-292 + uk.ts:settings.weightUnit, settings.weightUnits.kg, settings.weightUnits.tonnes" },
+            { "id": "set-currency", "name": "Валюта (Авто за країною / USD / EUR)", "description": "settings.currency. 'auto' підбирає за країною (UA → грн, KZ → ₸).", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:295-302 + uk.ts:settings.currency, currencies.auto" }
+          ]
+        },
+        {
+          "title": "Дефолти калькулятора (Розрахунки)",
+          "features": [
+            { "id": "set-default-price-type", "name": "Ціна за (Залікова / Фізична вага) — дефолт", "description": "settings.defaultGrainPriceType. Підказка settings.defaultGrainPriceTypeHint = «Тип ціни за замовчуванням у калькуляторі».", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:309-318 + uk.ts:settings.defaultGrainPriceType" },
+            { "id": "set-default-elevator", "name": "Елеватор за замовчуванням", "description": "settings.defaultElevator. Опція «Не вибрано» (settings.defaultElevatorNone) або зі списку. Підказка «Обирається автоматично при відкритті калькулятора».", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:114-117,320-329 + uk.ts:settings.defaultElevator, defaultElevatorHint, defaultElevatorNone" },
+            { "id": "set-default-processing", "name": "Порядок підробки / Метод TP / Спосіб зберігання — дефолти", "description": "settings.defaultProcessingOrder / defaultTonnePercentMethod / defaultStorageBasis. 3 селектори. Підказка settings.defaultProcessingHint = «Використовується коли елеватор не вибрано».", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:331-360 + uk.ts:settings.defaultProcessingOrder, defaultTonnePercentMethod, defaultStorageBasis, defaultProcessingHint" },
+            { "id": "set-valuation-method", "name": "Метод списання (Середньозважена / FIFO) — з захистом", "description": "settings.valuationMethod. valuationMethodHint: «Середньозважена — за середньою ціною залишку. FIFO — першим надійшло, першим вибуло». Захист (Task #30): якщо вже є locked-pools (з dispatch'ами) — confirm dialog «У X з ваших Y партій уже є відвантаження. Метод обліку для них зафіксовано і не зміниться. Новий метод застосується лише до нових партій...» (settings.valuationChangeMessage). Toast settings.valuationChangeSuccess.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:62-112,362-372 + uk.ts:settings.valuationMethod, settings.valuationMethods.weighted_average, settings.valuationMethods.fifo, settings.valuationMethodHint, settings.valuationChangeTitle, settings.valuationChangeMessage, settings.valuationChangeConfirm, settings.valuationChangeSuccess" },
+            { "id": "set-grain-in-waste", "name": "«Зерно у відходах, %» (0-2%)", "description": "settings.grainInWaste. Валідація 0-2: при invalid — settings.grainInWasteRangeError. Підказка settings.grainInWasteHint = «Відсоток зерна у сміттєвій домішці при очищенні (0–2%)».", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:218-230,374-389 + uk.ts:settings.grainInWaste, grainInWasteHint, grainInWasteRangeError" },
+            { "id": "set-auto-update-culture-prices", "name": "Чекбокс «Зберігати ціни до довідника»", "description": "settings.autoUpdateCulturePrices. Підказка settings.autoUpdateCulturePricesHint = «Зберігати введену ціну до довідника культур при розрахунку без елеватора». Toggle-switch.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:391-402 + uk.ts:settings.autoUpdateCulturePrices, autoUpdateCulturePricesHint" }
+          ]
+        },
+        {
+          "title": "Дані",
+          "features": [
+            { "id": "set-data-elevators", "name": "Перехід у «Профілі елеваторів»", "description": "Nav-row → /elevators. elevators.title.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:408-412" },
+            { "id": "set-data-cultures", "name": "Перехід у «Довідник культур»", "description": "Nav-row → /cultures. cultures.title.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:414-418" }
+          ]
+        },
+        {
+          "title": "Підписка (Підписка)",
+          "features": [
+            { "id": "set-plan", "name": "«Тарифний план» + бедж FREE / TRIAL / PRO", "description": "settings.plan. Trial показує «Залишилось {days} днів» (settings.trialDaysLeft).", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:422-432 + uk.ts:settings.subscription (section), settings.plan, settings.trialBadge («Пробний»), settings.trialDaysLeft, settings.trialExpired" },
+            { "id": "set-upgrade", "name": "Кнопка «Перейти на Pro»", "description": "settings.upgradePro. Видима лише якщо tier ≠ 'pro'. Веде на /subscribe.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:433-439 + uk.ts:settings.upgradePro" },
+            { "id": "set-restore", "name": "Кнопка «Відновити покупки»", "description": "settings.restorePurchases. Викликає paywall.restore(). При success — toast common.success. Інакше — settings.noSubscription = «Активну підписку не знайдено».", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:241-254,440-446,454-455 + uk.ts:settings.restorePurchases, noSubscription" },
+            { "id": "set-manage", "name": "Кнопка «Керувати підпискою» (PRO only)", "description": "settings.manageSubscription. Відкриває store-сторінку підписок: iOS → apps.apple.com/account/subscriptions; Android → Google Play subscriptions.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:232-239,447-453 + uk.ts:settings.manageSubscription" }
+          ]
+        },
+        {
+          "title": "Про додаток",
+          "features": [
+            { "id": "set-about", "name": "Логотип, назва, теглайн, версія, посилання на Privacy", "description": "Лого 512×512, «GrainCheck», теглайн app.tagline = «Калькулятор та облік зерна». Версія читається через @capacitor/app App.getInfo() — НЕ хардкод (синхронізована з нативним білдом). Посилання settings.privacy → graincheck.app/privacy.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:33-42,477-484 + uk.ts:settings.about, settings.version, settings.privacy, app.tagline («Калькулятор та облік зерна»)" },
+            { "id": "set-debug-paywall", "name": "Прихований debug: 5 тапів на версію → перемикач Free/Trial/Pro", "description": "Лише для тестування. 5 послідовних тапів (з 2-сек window) на номер версії — показує блок з кнопками FREE/TRIAL/PRO + Show State + Reset+StartTrial. Не для production кінцевого користувача.", "tags": ["live", "free"], "source": "src/ui/views/SettingsView.vue:121-160,458-475" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subscribe",
+      "title": "Підписка",
+      "icon": "👑",
+      "description": "Paywall-екран з Pro-фічами. 2 плани: $10/рік або $1/міс. 30 днів пробного безкоштовно. Доступ через Settings → Перейти на Pro.",
+      "groups": [
+        {
+          "title": "Контент",
+          "features": [
+            { "id": "sub-hero", "name": "Hero: бедж PRO, заголовок, підзаголовок", "description": "subscribe.title = «Розблокуйте все», subscribe.subtitle = «Необмежені елеватори, повний облік зерна, експорт та аналітика».", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:80-84 + uk.ts:subscribe.title, subtitle" },
+            { "id": "sub-features", "name": "5 фіч Pro з зеленими галочками", "description": "1) «Необмежена кількість елеваторів» (subscribe.featureElevators) 2) «Повна історія розрахунків» (subscribe.featureHistory) 3) «Облік зерна (реєстр)» (subscribe.featureLedger) 4) «Експорт PDF та Форма 36» (subscribe.featureExport) 5) «Аналіз собівартості» (subscribe.featureAnalytics).", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:86-107 + uk.ts:subscribe.featureElevators, subscribe.featureHistory, subscribe.featureLedger, subscribe.featureExport, subscribe.featureAnalytics" }
+          ]
+        },
+        {
+          "title": "Плани і покупка",
+          "features": [
+            { "id": "sub-plans", "name": "2 плани — річний (за замовч.) та місячний", "description": "Yearly «Річна» (subscribe.yearly) — $10/рік (subscribe.perYear «/рік»), бедж «Вигідніше» (subscribe.save), розрахунок ~$0.83/міс (subscribe.perMonthShort «/міс»). Monthly «Місячна» (subscribe.monthly) — $1/міс (subscribe.perMonth «/місяць»). Default selectedPlan = 'yearly'. ⚠ Ціни $10/$1 — ХАРДКОД у Vue template (SubscribeView.vue:117,127), не з i18n. Якщо тарифи зміняться — треба правити template.", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:109-130 + uk.ts:subscribe.yearly, subscribe.monthly, subscribe.perYear, subscribe.perMonth, subscribe.perMonthShort, subscribe.save" },
+            { "id": "sub-trial-note", "name": "«Перші 30 днів — безкоштовно»", "description": "subscribe.trialNote = «Перші 30 днів — безкоштовно, повний доступ без обмежень». Підсвічений primary-зеленим блоком.", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:132 + uk.ts:subscribe.trialNote" },
+            { "id": "sub-purchase", "name": "Кнопка «Підписатись»", "description": "subscribe.button. Викликає paywall.purchase(productId). Success → router.back() (повернення туди, звідки прийшов). Error → subscribe.error = «Не вдалось оформити підписку. Спробуйте пізніше».", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:33-55,134-140 + uk.ts:subscribe.button, error" },
+            { "id": "sub-restore", "name": "Кнопка «Відновити покупки»", "description": "settings.restorePurchases. paywall.restore(). Success → router.back(). Not found → settings.noSubscription.", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:57-71,142-144" }
+          ]
+        },
+        {
+          "title": "Legal",
+          "features": [
+            { "id": "sub-legal", "name": "Юридичний текст із посиланнями", "description": "subscribe.legalBase з підстановкою «{store}» (App Store / Google Play за платформою): «Підписка автоматично поновлюється: $1/місяць або $10/рік. Перші 30 днів безкоштовно. Оплата стягується після закінчення пробного періоду. Скасувати можна будь-коли в налаштуваннях {store}.» + посилання «Політика конфіденційності» (subscribe.privacyLink) + «Умови використання» (subscribe.termsLink) — Apple EULA для iOS, graincheck.app/terms для Android.", "tags": ["live", "free"], "source": "src/ui/views/SubscribeView.vue:19-27,148-152 + uk.ts:subscribe.legalBase, privacyLink, termsLink" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onboarding",
+      "title": "Welcome (онбординг)",
+      "icon": "🚀",
+      "description": "Початкове знайомство при першому запуску. Показується одноразово (localStorage:graincheck_onboarding_completed). 3 слайди з свайпом + кнопка «Почати». При завершенні засіває дефолтні культури за країною (UA). ⚠ У OnboardingView.vue:159-178 є dead-code — HTML для 4-го слайду (вибір країни UA/KZ) який ніколи не показується (slides масив має тільки 3 елементи). Це залишок попередньої версії — варто прибрати.",
+      "groups": [
+        {
+          "title": "Слайди",
+          "features": [
+            { "id": "onb-slide1", "name": "Слайд 1: GrainCheck (логотип + теглайн)", "description": "onboarding.slide1Title = «GrainCheck», slide1Text = «Калькулятор та облік зерна на елеваторі». Іконка — лого додатка 192×192.", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:20-25,113-122,181-182 + uk.ts:onboarding.slide1Title, slide1Text" },
+            { "id": "onb-slide2", "name": "Слайд 2: Профілі елеваторів", "description": "onboarding.slide2Title = «Профілі елеваторів», slide2Text = «Зберігайте базисні показники та тарифи кожного елеватора». Іконка — CSS-малюнок елеватора з силосами.", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:26-30,125-140 + uk.ts:onboarding.slide2Title, slide2Text" },
+            { "id": "onb-slide3", "name": "Слайд 3: Історія розрахунків", "description": "onboarding.slide3Title, slide3Text = «Всі ваші операції завжди під рукою». Іконка — CSS-годинник зі стрілками.", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue: slides array entry at 31-35, CSS icon at 143-156, render template at 181-182 + uk.ts:onboarding.slide3Title, onboarding.slide3Text" }
+          ]
+        },
+        {
+          "title": "Навігація",
+          "features": [
+            { "id": "onb-swipe", "name": "Swipe-навігація", "description": "Touch-swipe (>40px) між слайдами. Анімація 380ms cubic-bezier.", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:38-55,108-184" },
+            { "id": "onb-dots", "name": "Dot-індикатори (3 точки)", "description": "Show поточний слайд. Клік по точці — перехід на той слайд. ARIA tablist для accessibility.", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:188-199" },
+            { "id": "onb-next", "name": "Кнопка «Далі» / «Почати»", "description": "onboarding.next на слайдах 1-2, onboarding.start на останньому. На «Почати» — викликає complete().", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:65-71,201-204 + uk.ts:onboarding.next, onboarding.start" }
+          ]
+        },
+        {
+          "title": "Завершення",
+          "features": [
+            { "id": "onb-complete", "name": "complete() — set flag + seed cultures + redirect", "description": "1) localStorage.setItem('graincheck_onboarding_completed', 'true') — наступного разу одразу /. 2) settings.setCountry('UA') (KZ доступний у Налаштуваннях пізніше). 3) Якщо в довіднику немає культур — додати seed-культури для UA (через getSeedCultures). 4) router.replace('/').", "tags": ["live", "free"], "source": "src/ui/views/OnboardingView.vue:73-95 + src/router.ts:75-86" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+(function() {
+  const data = JSON.parse(document.getElementById('features').textContent);
+  document.getElementById('m-version').textContent = 'v' + data.version;
+  document.getElementById('m-date').textContent = data.lastUpdated;
+
+  // ── Collect all features flat + tag stats
+  const all = [];
+  for (const area of data.areas) {
+    for (const group of area.groups) {
+      for (const f of group.features) {
+        all.push({ ...f, _area: area.id, _areaTitle: area.title, _group: group.title });
+      }
+    }
+  }
+
+  const tagCounts = {};
+  for (const f of all) {
+    for (const t of (f.tags || [])) {
+      tagCounts[t] = (tagCounts[t] || 0) + 1;
+    }
+  }
+
+  // ── Stats bar
+  const stats = document.getElementById('stats');
+  stats.innerHTML = `
+    <div class="stat"><strong>${all.length}</strong>фіч у каталозі</div>
+    <div class="stat"><strong>${data.areas.length}</strong>розділів</div>
+    <div class="stat"><strong>${tagCounts.live || 0}</strong>в продакшені</div>
+    <div class="stat"><strong>${tagCounts.pro || 0}</strong>Pro-функції</div>
+  `;
+
+  // ── Filter state
+  const state = { area: null, tag: null, query: '' };
+
+  // ── Area chips
+  const areaCtr = document.getElementById('filter-areas');
+  const allChip = (label, key, val) => {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.dataset.kind = key; c.dataset.value = val;
+    c.textContent = label;
+    return c;
+  };
+  const allAreasChip = allChip('Усі', 'area', '');
+  allAreasChip.classList.add('active');
+  areaCtr.appendChild(allAreasChip);
+  for (const area of data.areas) {
+    const count = all.filter(f => f._area === area.id).length;
+    const c = allChip(`${area.icon} ${area.title}`, 'area', area.id);
+    const sub = document.createElement('span'); sub.className = 'count'; sub.textContent = count;
+    c.appendChild(document.createTextNode(' '));
+    c.appendChild(sub);
+    areaCtr.appendChild(c);
+  }
+
+  // ── Tag chips
+  const tagCtr = document.getElementById('filter-tags');
+  const allTagsChip = allChip('Усі', 'tag', '');
+  allTagsChip.classList.add('active');
+  tagCtr.appendChild(allTagsChip);
+  const tagLabels = { live: '✅ live', pro: '👑 Pro', free: 'free', 'in-dev': '🚧 in-dev', broken: '⛔ broken', locked: '🔒 locked' };
+  for (const tag of Object.keys(tagCounts).sort()) {
+    const c = allChip(tagLabels[tag] || tag, 'tag', tag);
+    c.classList.add('tag-' + tag);
+    const sub = document.createElement('span'); sub.className = 'count'; sub.textContent = tagCounts[tag];
+    c.appendChild(document.createTextNode(' '));
+    c.appendChild(sub);
+    tagCtr.appendChild(c);
+  }
+
+  // ── Filter logic
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const kind = chip.dataset.kind;
+      const val = chip.dataset.value;
+      document.querySelectorAll(`.chip[data-kind="${kind}"]`).forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      state[kind] = val || null;
+      render();
+    });
+  });
+
+  document.getElementById('search').addEventListener('input', (e) => {
+    state.query = e.target.value.toLowerCase().trim();
+    render();
+  });
+
+  // ── Render
+  const main = document.getElementById('main');
+  function matches(f) {
+    if (state.area && f._area !== state.area) return false;
+    if (state.tag && !(f.tags || []).includes(state.tag)) return false;
+    if (state.query) {
+      const hay = (f.name + ' ' + f.description + ' ' + (f.tags || []).join(' ')).toLowerCase();
+      if (!hay.includes(state.query)) return false;
+    }
+    return true;
+  }
+
+  function render() {
+    main.innerHTML = '';
+    let totalShown = 0;
+    for (const area of data.areas) {
+      const areaFeatures = [];
+      for (const group of area.groups) {
+        for (const f of group.features) {
+          areaFeatures.push({ ...f, _area: area.id, _group: group.title });
+        }
+      }
+      const shown = areaFeatures.filter(matches);
+      if (shown.length === 0) continue;
+
+      const sec = document.createElement('section');
+      sec.className = 'area';
+      sec.innerHTML = `<h2><span class="icon">${area.icon}</span> ${area.title} <span style="font-size:13px;color:var(--muted);font-weight:400;">· ${shown.length}/${areaFeatures.length}</span></h2><p class="area-desc">${area.description}</p>`;
+      main.appendChild(sec);
+
+      const groupedShown = {};
+      for (const f of shown) {
+        if (!groupedShown[f._group]) groupedShown[f._group] = [];
+        groupedShown[f._group].push(f);
+      }
+      for (const groupTitle of Object.keys(groupedShown)) {
+        const gDiv = document.createElement('div'); gDiv.className = 'group';
+        gDiv.innerHTML = `<h3>${groupTitle}</h3>`;
+        const grid = document.createElement('div'); grid.className = 'grid';
+        for (const f of groupedShown[groupTitle]) {
+          const card = document.createElement('div'); card.className = 'feature';
+          const tagsHtml = (f.tags || []).map(t => `<span class="pill tag-${t}">${t}</span>`).join('');
+          card.innerHTML = `
+            <div class="tags">${tagsHtml}</div>
+            <h4>${f.name}</h4>
+            <p class="desc">${f.description}</p>
+            <div class="meta-row">
+              <span class="source" title="${f.source}">${f.source}</span>
+            </div>
+          `;
+          grid.appendChild(card);
+          totalShown++;
+        }
+        gDiv.appendChild(grid);
+        sec.appendChild(gDiv);
+      }
+    }
+    if (totalShown === 0) {
+      main.innerHTML = '<div class="empty">Нічого не знайдено за фільтрами</div>';
+    }
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
