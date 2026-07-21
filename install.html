@@ -135,8 +135,8 @@
 
       var target = null;
       var eventName = null;
-      if (isIOS) { target = asUrl; eventName = 'click_appstore'; }
-      else if (isAndroid) { target = withPlayReferrer(gpUrl, qs); eventName = 'click_playstore'; }
+      if (isIOS) { target = (window.GC_tenjinClickURL && GC_tenjinClickURL('ios')) || asUrl; eventName = 'click_appstore'; }
+      else if (isAndroid) { target = (window.GC_tenjinClickURL && GC_tenjinClickURL('android')) || withPlayReferrer(gpUrl, qs); eventName = 'click_playstore'; }
 
       if (target) {
         fireGA(eventName, target);
@@ -148,12 +148,12 @@
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('actions').style.display = 'flex';
         // Attribute clicks
-        document.getElementById('btn-as').addEventListener('click', function () { fireGA('click_appstore', asUrl); });
-        document.getElementById('btn-gp').addEventListener('click', function () {
-          var u = withPlayReferrer(gpUrl, qs);
-          this.setAttribute('href', u);
-          fireGA('click_playstore', u);
-        });
+        var asT = (window.GC_tenjinClickURL && GC_tenjinClickURL('ios')) || asUrl;
+        var gpT = (window.GC_tenjinClickURL && GC_tenjinClickURL('android')) || withPlayReferrer(gpUrl, qs);
+        document.getElementById('btn-as').setAttribute('href', asT);
+        document.getElementById('btn-gp').setAttribute('href', gpT);
+        document.getElementById('btn-as').addEventListener('click', function () { fireGA('click_appstore', asT); });
+        document.getElementById('btn-gp').addEventListener('click', function () { fireGA('click_playstore', gpT); });
       }
     })();
   </script>
