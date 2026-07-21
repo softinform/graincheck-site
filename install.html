@@ -18,6 +18,23 @@
     gtag('config', 'G-1JWBCD1HEL', { anonymize_ip: true, send_page_view: true });
   </script>
 
+  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1115565107707861');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1115565107707861&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel Code -->
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -86,6 +103,8 @@
     <a href="/">graincheck.app</a>
   </div>
 
+  <script>window.GC_NO_AUTOWIRE = true;</script>
+  <script src="/install-tracking.js"></script>
   <script>
     (function () {
       var ua = navigator.userAgent || '';
@@ -104,6 +123,7 @@
       }
 
       function fireGA(eventName, dest) {
+        if (window.GC_fireInstallTracking) { try { window.GC_fireInstallTracking(); } catch (_) {} }
         try {
           gtag('event', eventName, {
             event_category: 'install_redirect',
